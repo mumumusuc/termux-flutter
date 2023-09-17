@@ -1,0 +1,56 @@
+diff --git a/runtime/bin/BUILD.gn b/runtime/bin/BUILD.gn
+index eac51ec0247..4eaaae8726b 100644
+--- a/runtime/bin/BUILD.gn
++++ b/runtime/bin/BUILD.gn
+@@ -27,7 +27,7 @@ config("libdart_builtin_config") {
+   } else {
+     libs = [ "dl" ]
+   }
+-  if (is_android) {
++  if (is_android || is_linux) {
+     libs += [
+       "android",
+       "log",
+diff --git a/runtime/bin/directory_android.cc b/runtime/bin/directory_android.cc
+index 124850c6e7c..96e59de3b37 100644
+--- a/runtime/bin/directory_android.cc
++++ b/runtime/bin/directory_android.cc
+@@ -423,6 +423,25 @@ const char* Directory::SystemTemp(Namespace* namespc) {
+   if (Directory::system_temp_path_override_ != nullptr) {
+     return DartUtils::ScopedCopyCString(Directory::system_temp_path_override_);
+   }
++  // mumumusuc: create tmpdir for Termux
++  PathBuffer path;
++  const char* temp_dir = getenv("TMPDIR");
++  if (temp_dir == nullptr) {
++    temp_dir = getenv("TMP");
++  }
++  if (temp_dir == nullptr) {
++    temp_dir = "/tmp";
++  }
++  NamespaceScope ns(namespc, temp_dir);
++  if (path.Add(ns.path())) {
++    char* result = path.AsString();
++    int length = strlen(result);
++    if ((length > 1) && (result[length - 1] == '/')) {
++        result[length - 1] = '\0';
++    }
++    return path.AsScopedString();
++  }
++
+   // Android does not have a /tmp directory. A partial substitute,
+   // suitable for bring-up work and tests, is to create a tmp
+   // directory in /data/local/tmp.
+diff --git a/runtime/platform/globals.h b/runtime/platform/globals.h
+index 40d8ac3d1cf..1e19ddbac37 100644
+--- a/runtime/platform/globals.h
++++ b/runtime/platform/globals.h
+@@ -737,7 +737,7 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
+ #endif
+ 
+ #if defined(DART_HOST_OS_ANDROID)
+-#define kHostOperatingSystemName "android"
++#define kHostOperatingSystemName "linux"
+ #elif defined(DART_HOST_OS_FUCHSIA)
+ #define kHostOperatingSystemName "fuchsia"
+ #elif defined(DART_HOST_OS_IOS)

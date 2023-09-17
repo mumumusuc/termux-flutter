@@ -1,0 +1,60 @@
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 148c97ea..48526c0d 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -346,10 +346,24 @@ config("compiler") {
+   if (is_linux) {
+     cflags += [ "-pthread" ]
+     ldflags += [ "-pthread" ]
++    # termux
++    cflags += [
++      "-ffunction-sections",
++      "-funwind-tables",
++      "-fno-short-enums",
++      "-nostdinc++",
++      "-mno-outline-atomics",
++      ]
++    ldflags += [
++      "-Wl,--no-undefined",
++      "-Wl,--exclude-libs,ALL",
++      "-fuse-ld=lld",
++
++      # Enable identical code folding to reduce size.
++      "-Wl,--icf=all",
++    ]
+ 
+     if (current_cpu == "arm64") {
+-      cflags += [ "--target=aarch64-linux-gnu" ]
+-      ldflags += [ "--target=aarch64-linux-gnu" ]
+       cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
+     }
+   }
+diff --git a/build/config/gcc/BUILD.gn b/build/config/gcc/BUILD.gn
+index a96013aa..ac22fe59 100644
+--- a/build/config/gcc/BUILD.gn
++++ b/build/config/gcc/BUILD.gn
+@@ -25,23 +25,11 @@ config("symbol_visibility_hidden") {
+ 
+ # Settings for executables and shared libraries.
+ config("executable_ldconfig") {
+-  if (is_android) {
++    # mumumusuc: Fix DT_RPATH issue
+     ldflags = [
+       "-Bdynamic",
+       "-Wl,-z,nocopyreloc",
+     ]
+-  } else {
+-    # Android doesn't support rpath.
+-    ldflags = [
+-      # Want to pass "\$". GN will re-escape as required for ninja.
+-      "-Wl,-rpath=\$ORIGIN/",
+-      "-Wl,-rpath-link=",
+-
+-      # Newer binutils don't set DT_RPATH unless you disable "new" dtags
+-      # and the new DT_RUNPATH doesn't work without --no-as-needed flag.
+-      "-Wl,--disable-new-dtags",
+-    ]
+-  }
+ }
+ 
+ config("no_exceptions") {
