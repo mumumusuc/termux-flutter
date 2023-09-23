@@ -8,7 +8,8 @@ Run Flutter on Termux !
 ## [安装]
 
 ```bash
-$ git clone https://github.com/flutter/flutter
+# flutter-3.13.3 as example
+$ git clone https://github.com/flutter/flutter -b 3.13.3
 $ ./install.py --engine engine.tar.gz --dart-sdk dart-sdk.tar.gz flutter
 
 $ flutter --version
@@ -67,12 +68,7 @@ $ cd -
 $ DEPOT_TOOLS_UPDATE=0 gclient sync -DR --with_branch_heads --with_tags -v
 
 $ cd src
-$ git apply -p1 ~/engine/patches/src.patch
-$ cd third_party/dart
-$ git apply -p1 ~/engine/patches/dart.patch
-$ cd ../skia
-$ git apply -p1 ~/engine/patches/skia.path
-$ cd ../..
+$ ../patch.py -p ../patches .
 $ python3 ./flutter/tools/gn  \
       --target-os linux \
       --linux-cpu arm64 \
