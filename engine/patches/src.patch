@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 148c97ea..48526c0d 100644
+index 15104b6e..61920129 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -346,10 +346,24 @@ config("compiler") {
@@ -29,6 +29,15 @@ index 148c97ea..48526c0d 100644
        cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
      }
    }
+@@ -671,7 +685,7 @@ if (is_win) {
+     "-Wno-psabi",
+ 
+     # Needed for nlohmann/json.
+-    "-Wno-deprecated-literal-operator",
++    #"-Wno-deprecated-literal-operator",
+   ]
+   if (!is_wasm) {
+     default_warning_flags += [
 diff --git a/build/config/gcc/BUILD.gn b/build/config/gcc/BUILD.gn
 index a96013aa..ac22fe59 100644
 --- a/build/config/gcc/BUILD.gn

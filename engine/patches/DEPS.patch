@@ -1,0 +1,155 @@
+diff --git a/DEPS b/DEPS
+index 5107c60f40..68dd7de9ed 100644
+--- a/DEPS
++++ b/DEPS
+@@ -507,9 +507,6 @@ deps = {
+   'src/third_party/dart/third_party/pkg/yaml_edit':
+    Var('dart_git') + '/yaml_edit.git' + '@' + Var('dart_yaml_edit_rev'),
+ 
+-  'src/third_party/dart/tools/sdks/dart-sdk':
+-   {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
+-
+   # WARNING: end of dart dependencies list that is cleaned up automatically - see create_updated_flutter_deps.py.
+ 
+   # Prebuilt Dart SDK of the same revision as the Dart SDK source checkout
+@@ -829,17 +826,6 @@ deps = {
+     'dep_type': 'cipd',
+   },
+ 
+-  'src/buildtools/linux-arm64/clang': {
+-    'packages': [
+-      {
+-        'package': 'fuchsia/third_party/clang/linux-arm64',
+-        'version': Var('clang_version'),
+-      }
+-    ],
+-    'condition': 'host_os == "linux" and host_cpu == "arm64"',
+-    'dep_type': 'cipd',
+-  },
+-
+   'src/buildtools/windows-x64/clang': {
+     'packages': [
+       {
+@@ -924,16 +910,6 @@ deps = {
+      'condition': 'host_os == "mac" and not download_fuchsia_sdk',
+      'dep_type': 'cipd',
+    },
+-   'src/fuchsia/sdk/linux': {
+-     'packages': [
+-       {
+-        'package': 'fuchsia/sdk/core/linux-amd64',
+-        'version': 'M-fNM9YP2Lpc8Y_Dj7W2nZ4xcbMR2TFzh0DY-bGs0MEC'
+-       }
+-     ],
+-     'condition': 'host_os == "linux" and not download_fuchsia_sdk',
+-     'dep_type': 'cipd',
+-   },
+ 
+   'src/third_party/impeller-cmake-example': {
+      'url': Var('github_git') + '/bdero/impeller-cmake-example.git' + '@' + 'c2286827ae68e3c2694410e0047cab42dac3312f',
+@@ -968,6 +944,11 @@ recursedeps = [
+ ]
+ 
+ hooks = [
++  {
++    'name': 'Setup clang ninja gn dart-sdk',
++    'pattern': '.',
++    'action': ['bash', 'setup.sh'],
++  },
+   {
+     # Generate the Dart SDK's .dart_tool/package_confg.json file.
+     'name': 'Generate .dart_tool/package_confg.json',
+diff --git a/DEPS b/DEPS
+index 7db6cfc161..83dda873f0 100644
+--- a/DEPS
++++ b/DEPS
+@@ -510,8 +510,8 @@ deps = {
+   'src/third_party/dart/third_party/pkg/yaml_edit':
+    Var('dart_git') + '/yaml_edit.git' + '@' + Var('dart_yaml_edit_rev'),
+ 
+-  'src/third_party/dart/tools/sdks/dart-sdk':
+-   {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
++  #'src/third_party/dart/tools/sdks/dart-sdk':
++  # {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
+ 
+   # WARNING: end of dart dependencies list that is cleaned up automatically - see create_updated_flutter_deps.py.
+ 
+@@ -839,7 +839,8 @@ deps = {
+         'version': Var('clang_version'),
+       }
+     ],
+-    'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    #'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    'condition': 'false',
+     'dep_type': 'cipd',
+   },
+ 
+@@ -931,7 +932,8 @@ deps = {
+         'version': 'U0lgvzao-MdzfEvoTk7uXH2Dkc-1RGRfcDSEXVWJe-oC'
+        }
+      ],
+-     'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     #'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     'condition': 'false',
+      'dep_type': 'cipd',
+    },
+ 
+@@ -968,6 +970,11 @@ recursedeps = [
+ ]
+ 
+ hooks = [
++  {
++    'name': 'Setup clang ninja gn dart-sdk',
++    'pattern': '.',
++    'action': ['bash', 'setup.sh'],
++  },
+   {
+     # Generate the Dart SDK's .dart_tool/package_confg.json file.
+     'name': 'Generate .dart_tool/package_confg.json',
+diff --git a/DEPS b/DEPS
+index 7db6cfc161..6d19db8a20 100644
+--- a/DEPS
++++ b/DEPS
+@@ -510,8 +510,8 @@ deps = {
+   'src/third_party/dart/third_party/pkg/yaml_edit':
+    Var('dart_git') + '/yaml_edit.git' + '@' + Var('dart_yaml_edit_rev'),
+ 
+-  'src/third_party/dart/tools/sdks/dart-sdk':
+-   {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
++  #'src/third_party/dart/tools/sdks/dart-sdk':
++  # {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
+ 
+   # WARNING: end of dart dependencies list that is cleaned up automatically - see create_updated_flutter_deps.py.
+ 
+@@ -839,7 +839,8 @@ deps = {
+         'version': Var('clang_version'),
+       }
+     ],
+-    'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    #'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    'condition': 'False',
+     'dep_type': 'cipd',
+   },
+ 
+@@ -931,7 +932,8 @@ deps = {
+         'version': 'U0lgvzao-MdzfEvoTk7uXH2Dkc-1RGRfcDSEXVWJe-oC'
+        }
+      ],
+-     'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     #'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     'condition': 'False',
+      'dep_type': 'cipd',
+    },
+ 
+@@ -968,6 +970,11 @@ recursedeps = [
+ ]
+ 
+ hooks = [
++  {
++    'name': 'Setup clang ninja gn dart-sdk',
++    'pattern': '.',
++    'action': ['bash', 'setup.sh'],
++  },
+   {
+     # Generate the Dart SDK's .dart_tool/package_confg.json file.
+     'name': 'Generate .dart_tool/package_confg.json',
