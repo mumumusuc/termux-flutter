@@ -1,3 +1,4 @@
 engine/src
+engine/engine.version
 .cipd
 .gclient_*
