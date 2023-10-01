@@ -52,7 +52,7 @@ options:
 ---
 
 ```bash
-$ apt insatll gtk3 fontconfig
+$ apt install gtk3 fontconfig
 ```
 
 ## [编译]
