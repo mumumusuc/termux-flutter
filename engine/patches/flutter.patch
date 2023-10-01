@@ -1,0 +1,74 @@
+diff --git a/DEPS b/DEPS
+index 7db6cfc161..6d19db8a20 100644
+--- a/DEPS
++++ b/DEPS
+@@ -510,8 +510,8 @@ deps = {
+   'src/third_party/dart/third_party/pkg/yaml_edit':
+    Var('dart_git') + '/yaml_edit.git' + '@' + Var('dart_yaml_edit_rev'),
+ 
+-  'src/third_party/dart/tools/sdks/dart-sdk':
+-   {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
++  #'src/third_party/dart/tools/sdks/dart-sdk':
++  # {'dep_type': 'cipd', 'packages': [{'package': 'dart/dart-sdk/${{platform}}', 'version': 'version:3.2.0-150.0.dev'}]},
+ 
+   # WARNING: end of dart dependencies list that is cleaned up automatically - see create_updated_flutter_deps.py.
+ 
+@@ -839,7 +839,8 @@ deps = {
+         'version': Var('clang_version'),
+       }
+     ],
+-    'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    #'condition': 'host_os == "linux" and host_cpu == "arm64"',
++    'condition': 'False',
+     'dep_type': 'cipd',
+   },
+ 
+@@ -931,7 +932,8 @@ deps = {
+         'version': 'U0lgvzao-MdzfEvoTk7uXH2Dkc-1RGRfcDSEXVWJe-oC'
+        }
+      ],
+-     'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     #'condition': 'host_os == "linux" and not download_fuchsia_sdk',
++     'condition': 'False',
+      'dep_type': 'cipd',
+    },
+ 
+@@ -968,6 +970,11 @@ recursedeps = [
+ ]
+ 
+ hooks = [
++  {
++    'name': 'Setup clang ninja gn dart-sdk',
++    'pattern': '.',
++    'action': ['bash', 'setup.sh'],
++  },
+   {
+     # Generate the Dart SDK's .dart_tool/package_confg.json file.
+     'name': 'Generate .dart_tool/package_confg.json',
+diff --git a/impeller/entity/contents/scene_contents.cc b/impeller/entity/contents/scene_contents.cc
+index 3ac03affa5..a6dc42d4e5 100644
+--- a/impeller/entity/contents/scene_contents.cc
++++ b/impeller/entity/contents/scene_contents.cc
+@@ -44,11 +44,12 @@ bool SceneContents::Render(const ContentContext& renderer,
+     coverage = Rect::MakeSize(pass.GetRenderTargetSize());
+   }
+ 
+-  RenderTarget subpass_target = RenderTarget::CreateOffscreenMSAA(
++  RenderTarget subpass_target = RenderTarget::CreateOffscreen(
+       *renderer.GetContext(),            // context
+       *renderer.GetRenderTargetCache(),  // allocator
+       ISize(coverage.value().size),      // size
+-      "SceneContents",                   // label
++      "SceneContents"                    // label
++      /*
+       RenderTarget::AttachmentConfigMSAA{
+           .storage_mode = StorageMode::kDeviceTransient,
+           .resolve_storage_mode = StorageMode::kDevicePrivate,
+@@ -60,6 +61,7 @@ bool SceneContents::Render(const ContentContext& renderer,
+           .load_action = LoadAction::kDontCare,
+           .store_action = StoreAction::kDontCare,
+       }  // stencil_attachment_config
++      */
+   );
+   if (!subpass_target.IsValid()) {
+     return false;
