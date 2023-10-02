@@ -47,6 +47,7 @@ def flutter_sdk(): return [
     'shader_lib',
     'flutter_tester',
     'font-subset',
+    'scenec',
     'icudtl.dat',
     'impellerc',
     'libpath_ops.so',
@@ -61,6 +62,7 @@ def flutter_sdk(): return [
 def linux_gtk(): return [
     'flutter_linux',
     'gen_snapshot',
+    'libflutter_engine.so',
     'libflutter_linux_gtk.so']
 
 

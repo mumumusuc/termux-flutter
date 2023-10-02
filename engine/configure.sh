@@ -1,4 +1,4 @@
-#!/bin/env fish
+#!/bin/env bash
 
 python3 ./flutter/tools/gn  \
     --target-os linux \
@@ -16,8 +16,9 @@ python3 ./flutter/tools/gn  \
     --enable-impeller-3d \
     --enable-impeller-opengles \
     --target-toolchain $PREFIX \
-    --target-sysroot $PREFIX \
+    --target-sysroot $PREFIX/.. \
     --no-prebuilt-dart-sdk \
+    #--no-build-engine-artifacts \
     --gn-args '
         toolchain_prefix="aarch64-linux-android-"
         use_default_linux_sysroot=false
