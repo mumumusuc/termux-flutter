@@ -113,6 +113,7 @@ def copy_dart_sdk(sdk, dst, ver):
 
 
 def main(argv):
+    root = os.getcwd()
     args = parse_args(argv)
     dest = os.path.abspath(args.target)
     vers = valid_version(dest, args.check)
@@ -121,6 +122,8 @@ def main(argv):
         engine = os.path.abspath(args.engine)
         assert tarfile.is_tarfile(engine)
         copy_engine(dest, engine, vers)
+
+    os.chdir(root)
 
     if args.dart_sdk:
         dart = os.path.abspath(args.dart_sdk)
