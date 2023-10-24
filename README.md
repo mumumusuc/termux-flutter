@@ -18,13 +18,13 @@ $ git clone https://github.com/flutter/flutter -b 3.13.6
 $ ./install.py --engine engine.tar.gz --dart-sdk dart-sdk.tar.gz flutter
 
 # install dependence
-$ apt install gtk3 fontconfig
+$ apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
 
 # create & run
 $ flutter create hello_world && cd hello_world
 $ export DISPLAY=:0
 $ termux-x11 :0 &
-$ flutter run
+$ LD_LIBRARY_PATH=$PREFIX/lib flutter run
 ```
 
 ## Note
