@@ -1,4 +1,9 @@
 engine/src
-engine/engine.version
+engine/metrics.cfg
+engine/.cipd_client
+engine/.cipd_client_cache
+engine/.versions
+engine/_bad_scm
+**/__pycache__
 .cipd
 .gclient_*

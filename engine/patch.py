@@ -22,9 +22,9 @@ def parse_args(args):
 
 
 WORKS = {
-    'src.patch': '',
-    'dart.patch': 'third_party/dart',
-    'skia.patch': 'third_party/skia',
+    'src.patch': 'src',
+    'dart.patch': 'src/third_party/dart',
+    'skia.patch': 'src/third_party/skia',
 }
 
 
@@ -44,7 +44,7 @@ def main(argv):
         assert os.path.isdir(dir)
 
         subprocess.run(
-            ['git', 'apply', patch, '--reject'],
+            ['git', 'apply', patch],
             stdout=subprocess.PIPE,
             check=True,
             cwd=dir,

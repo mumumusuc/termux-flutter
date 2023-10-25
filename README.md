@@ -15,7 +15,7 @@ Run Flutter on Termux !
 $ git clone https://github.com/flutter/flutter -b 3.13.6
 
 # install patched engine & dart-sdk
-$ ./install.py --engine engine.tar.gz --dart-sdk dart-sdk.tar.gz flutter
+$ ./install.py --engine /path/to/engine.tar.gz --dart-sdk /path/to/dart-sdk.tar.gz flutter
 
 # install dependence
 $ apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
@@ -24,7 +24,7 @@ $ apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
 $ flutter create hello_world && cd hello_world
 $ export DISPLAY=:0
 $ termux-x11 :0 &
-$ LD_LIBRARY_PATH=$PREFIX/lib flutter run
+$ flutter run
 ```
 
 ## Note

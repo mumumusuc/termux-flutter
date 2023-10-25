@@ -10,7 +10,7 @@ def parse_args(args):
     args = args[1:]
     parser = argparse.ArgumentParser(description='pack Flutter engine')
     parser.add_argument(
-        'output',
+        '-o', '--output',
         help='install destination',
         default=os.getcwd())
     parser.add_argument(
