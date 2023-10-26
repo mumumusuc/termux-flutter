@@ -682,7 +682,6 @@ class Dependency(gclient_utils.WorkItem, DependencySettings):
                 # them function as revision overrides allows them to be applied
                 # to recursive dependencies. https://crbug.com/1031185
                 if (dep_name in processed_deps):
-                    print('override %s -> %s' % (dep_name, dep_info))
                     processed_deps[dep_name] = dep_info
 
         # Make child deps conditional on any parent conditions. This ensures

@@ -29,12 +29,3 @@ index 15104b6e..61920129 100644
        cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
      }
    }
-@@ -671,7 +685,7 @@ if (is_win) {
-     "-Wno-psabi",
- 
-     # Needed for nlohmann/json.
--    "-Wno-deprecated-literal-operator",
-+    #"-Wno-deprecated-literal-operator",
-   ]
-   if (!is_wasm) {
-     default_warning_flags += [

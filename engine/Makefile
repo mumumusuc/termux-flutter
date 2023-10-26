@@ -3,7 +3,7 @@
 ARGS     =
 ROOT     = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 RUNTIME  = debug
-DART_SDK = $(PREFIX)/lib/dark-sdk
+DART_SDK = $(PREFIX)/lib/dart-sdk
 
 PYTHON = $(PREFIX)/bin/python3
 NINJA  = $(PREFIX)/bin/ninja
@@ -71,7 +71,7 @@ build: $(CONFIG) $(VERSION) $(NINJA)
 sync: $(PREBUILT)
 	$(PYTHON) gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
 
-install: install.engine install.dark-sdk
+install: install.engine install.dart-sdk
 
 install.engine: $(VERSION)
 	@$(PYTHON) $(ROOT)engine-install.py -v $(VERSION) --$(RUNTIME) $(OUTPUT) -o $(INSTALL)/engine.tar.gz
