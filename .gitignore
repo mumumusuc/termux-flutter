@@ -1,4 +1,5 @@
 engine/src
+engine/release
 engine/metrics.cfg
 engine/.cipd_client
 engine/.cipd_client_cache

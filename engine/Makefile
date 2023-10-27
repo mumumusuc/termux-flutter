@@ -10,6 +10,9 @@ NINJA  = $(PREFIX)/bin/ninja
 GIT    = $(PREFIX)/bin/git
 GN     = $(PREFIX)/bin/gn
 
+build: $(CONFIG) $(VERSION) $(NINJA)
+	$(NINJA) -C $(OUTPUT) $(ARGS)
+
 ifeq ($(strip $(DART_SDK)),)
 override DART_SDK = $(error 'dart-sdk not found.')
 else
@@ -52,8 +55,8 @@ override GN_ARGS += 							\
 OUTPUT  = $(ROOT)src/out/linux_$(RUNTIME)_arm64
 CONFIG  = $(OUTPUT)/build.ninja
 VERSION = $(OUTPUT)/engine.version
+INSTALL = $(ROOT)release
 FLUTTER = $(ROOT)src/flutter
-INSTALL = $(ROOT)..
 
 PREBUILT = $(PREBUILT.clang) $(PREBUILT.ninja) $(PREBUILT.gn) $(PREBUILT.dart)
 PREBUILT.clang := $(addprefix src/buildtools/linux-arm64/clang/bin/,analyze-build clang clang++ clang-apply-replacements clang-cl clang-cpp clang-doc clang-format clang-include-fixer clang-refactor clang-scan-deps clang-tidy clangd dsymutil find-all-symbols git-clang-format intercept-build ld.lld ld64.lld lld lld-link llvm-ar llvm-bcanalyzer llvm-bitcode-strip llvm-cov llvm-cxxfilt llvm-debuginfod-find llvm-dlltool llvm-dwarfdump llvm-dwp llvm-gsymutil llvm-ifs llvm-install-name-tool llvm-lib llvm-libtool-darwin llvm-lipo llvm-ml llvm-mt llvm-nm llvm-objcopy llvm-objdump llvm-otool llvm-pdbutil llvm-profdata llvm-ranlib llvm-rc llvm-readelf llvm-readobj llvm-size llvm-strip llvm-symbolizer llvm-undname llvm-windres llvm-xray run-clang-tidy sancov scan-build-py wasm-ld)
@@ -65,9 +68,6 @@ define link
 mkdir -p "$(dir $(2))" && ln -sf "$(abspath $(1))" "$(2)" > /dev/null 2>&1
 endef
 
-build: $(CONFIG) $(VERSION) $(NINJA)
-	$(NINJA) -C $(OUTPUT) $(ARGS)
-
 sync: $(PREBUILT)
 	$(PYTHON) gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
 
@@ -75,9 +75,11 @@ install: install.engine install.dart-sdk
 
 install.engine: $(VERSION)
 	@$(PYTHON) $(ROOT)engine-install.py -v $(VERSION) --$(RUNTIME) $(OUTPUT) -o $(INSTALL)/engine.tar.gz
+	@echo engine.tar.gz installed to $(INSTALL)
 
 install.dart-sdk: $(VERSION)
 	@$(PYTHON) $(ROOT)dart-sdk-install.py $(OUTPUT) -v $(VERSION) -o $(INSTALL)/dart-sdk.tar.gz
+	@echo dart-sdk.tar.gz installed to $(INSTALL)
 
 config: $(CONFIG)
 

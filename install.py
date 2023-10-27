@@ -41,7 +41,7 @@ def check_version(flutter, version, name):
             '  {} \n'
             '  {}:\n'
             '  {} \n'
-            'you may checkout the correct branch of flutter'
+            'you may checkout the correct branch of flutter '
             'or run with option "--no-check" to disable version check.'
             .format(flutter, name, version))
         exit(1)
