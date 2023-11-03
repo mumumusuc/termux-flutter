@@ -24,26 +24,6 @@ solutions = [
       "download_windows_deps" : False,
     },
     "custom_hooks" : [
-      {
-        "name": "apply src patch",
-        "pattern": ".",
-        "action": ['git', '-C', 'src', 'apply', '../patches/src.patch'],
-      },
-      {
-        "name": "apply dart patch",
-        "pattern": ".",
-        "action": ['git', '-C', 'src/third_party/dart', 'apply', '../../../patches/dart.patch'],
-      },
-      {
-        "name": "apply skia patch",
-        "pattern": ".",
-        "action": ['git', '-C', 'src/third_party/skia', 'apply', '../../../patches/skia.patch'],
-      },
-      {
-        "name": "apply src patch",
-        "pattern": ".",
-        "action": ['sed', '-i', 's/"-Wno-deprecated-literal-operator",//g', 'src/build/config/compiler/BUILD.gn'],
-      },
     ],
   },
 ]

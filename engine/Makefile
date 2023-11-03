@@ -1,5 +1,5 @@
 .PHONY: sync config build install
-
+# apt install freetype
 ARGS     =
 ROOT     = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 RUNTIME  = debug
@@ -69,7 +69,12 @@ mkdir -p "$(dir $(2))" && ln -sf "$(abspath $(1))" "$(2)" > /dev/null 2>&1
 endef
 
 sync: $(PREBUILT)
+	@pip3 install httplib2 -q
 	$(PYTHON) gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
+	git -C src apply ../patches/src.patch
+	git -C src/third_party/dart apply ../../../patches/dart.patch
+	git -C src/third_party/skia apply ../../../patches/skia.patch
+	sed -i 's/"-Wno-deprecated-literal-operator",//g' src/build/config/compiler/BUILD.gn
 
 install: install.engine install.dart-sdk
 
@@ -83,8 +88,8 @@ install.dart-sdk: $(VERSION)
 
 config: $(CONFIG)
 
-$(CONFIG): $(FLUTTER)
-	@$(PYTHON) $(FLUTTER)/tools/gn $(CONFIGURE) --gn-args '$(GN_ARGS)'
+$(CONFIG): $(FLUTTER)/tools/gn
+	$(PYTHON) $(FLUTTER)/tools/gn $(CONFIGURE) --gn-args '$(GN_ARGS)' $(ARGS)
 
 $(VERSION): $(FLUTTER)
 	$(GIT) -C $(FLUTTER) rev-parse HEAD > $@
