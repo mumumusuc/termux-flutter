@@ -8,24 +8,32 @@ Run Flutter on Termux !
 </p>
 
 
-## Install
+## Install 
+1. clone this repo or just download the [`install.py`](https://github.com/mumumusuc/termux-flutter/blob/main/install.py).
 
-```bash
-# flutter-3.13.6 as example
-$ git clone https://github.com/flutter/flutter -b 3.13.6
 
-# install patched engine & dart-sdk
-$ ./install.py --engine /path/to/engine.tar.gz --dart-sdk /path/to/dart-sdk.tar.gz flutter
+2. download `dart-sdk.tar.gz` and `engine.tar.gz` from [release](https://github.com/mumumusuc/termux-flutter/releases) page.
+   
+3. run
+   ```bash
+    # flutter-3.13.6 as example
+    $ git clone https://github.com/flutter/flutter -b 3.13.6
 
-# install dependence
-$ apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
+    # install patched engine & dart-sdk
+    $ path/to/install.py --engine path/to/engine.tar.gz --dart-sdk path/to/dart-sdk.tar.gz path/to/flutter
 
-# create & run
-$ flutter create hello_world && cd hello_world
-$ export DISPLAY=:0
-$ termux-x11 :0 &
-$ flutter run
-```
+    # set flutter path
+    $ export PATH=$PATH:$(pwd)/flutter/bin
+
+    # install dependence
+    $ apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
+
+    # create & run
+    $ flutter create hello_world && cd hello_world
+    $ export DISPLAY=:0 && termux-x11 :0 &
+    $ flutter run
+    ```
+4. a [video](https://github.com/mumumusuc/termux-flutter/issues/7#issuecomment-1790704873) example using `fish`
 
 ## Note
 
