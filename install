@@ -1,0 +1,90 @@
+#!/bin/env bash
+
+set -e
+
+VERSION="3.16.1"
+ROOTDIR="$(dirname $(realpath $0))"
+FLUTTER="$ROOTDIR/flutter"
+
+#GIT_CDN="https://ghps.cc/"
+GIT_CDN=
+BASE_URL="${GIT_CDN}https://github.com/mumumusuc/termux-flutter/releases/download/$VERSION"
+BASE_RAW="${GIT_CDN}https://raw.githubusercontent.com/mumumusuc/termux-flutter/main"
+
+command -v git > /dev/null 2>&1 || {
+    >&2 echo
+    >&2 echo 'Missing "git" tool.'
+    >&2 echo 'Consider running "apt install git".'
+    echo
+    exit 1
+}
+
+command -v curl > /dev/null 2>&1 || {
+    >&2 echo
+    >&2 echo 'Missing "curl" tool.'
+    >&2 echo 'Consider running "apt install curl".'
+    echo
+    exit 1
+}
+
+download() {
+    curl --progress-bar --retry 3 --continue-at - --location --output "$1" "$2" 2>&1 || {
+        >&2 echo
+        >&2 echo "Failed to retrieve the $(basename "$1") from: $2"
+        >&2 echo
+        rm -f -- "$1"
+        exit 1
+    }
+}
+
+ensure() {
+    TAR="$1.tar.gz"
+    SHA="$1.sha256"
+    
+    echo "Downloading $SHA."
+    download "$SHA" "$BASE_URL/$SHA" && sha256sum -c $SHA --status 2>/dev/null || {
+        echo "Downloading $TAR ..."
+        download "$TAR" "$BASE_URL/$TAR" && sha256sum -c $SHA --status || {
+            >&2 echo "Sha256sum check failed."
+            rm -f -- "$SHA"
+            rm -f -- "$TAR"
+            exit 1
+        }
+    }
+}
+
+main() {
+    echo "Downloading install.py."
+    download "install.py" "$BASE_RAW/install.py"
+
+    ensure "engine"   
+    ensure "dart-sdk"
+
+    if [ ! -d $FLUTTER ]; then 
+        git clone --depth=1 https://www.github.com/flutter/flutter.git -b $VERSION $FLUTTER
+        echo
+    fi
+        
+    TAG="$(git -C $FLUTTER describe --tags HEAD)" || {
+        >&2 echo
+        >&2 echo "Invalid flutter repo."
+        >&2 echo "Try to remove $FLUTTER, or change to another directory"
+        exit 1
+    }
+    
+    if [ "$TAG" != "$VERSION" ]; then
+        git -C $FLUTTER fetch --tags
+        git -C $FLUTTER checkout $VERSION
+        echo
+    fi
+
+    python3 install.py -d dart-sdk.tar.gz -e engine.tar.gz $FLUTTER
+
+    echo
+    $FLUTTER/bin/flutter doctor
+
+    echo
+    echo "Installation is complete. Now you can add \"$FLUTTER/bin\" into your PATH."
+}
+
+pushd $TMPDIR >/dev/null && main "$@"

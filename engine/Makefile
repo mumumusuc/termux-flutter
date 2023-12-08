@@ -47,9 +47,6 @@ override GN_ARGS += 							\
 	use_default_linux_sysroot=false				\
 	is_desktop_linux=false 						\
 	test_enable_vulkan=false 					\
-	skia_use_vulkan=false 						\
-	shell_enable_vulkan=false 					\
-	embedder_enable_vulkan=false 				\
 	dart_platform_sdk=false
 
 OUTPUT  = $(ROOT)src/out/linux_$(RUNTIME)_arm64
