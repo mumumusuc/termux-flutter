@@ -123,4 +123,4 @@ test: install
 	@$(FLUTTER)/bin/flutter doctor
 
 publish: install
-	@$(ROOT)publish $(TAG) $(TOKEN)
+	@$(ROOT)publish $(TAG) $(INSTALL) $(TOKEN)

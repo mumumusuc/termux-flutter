@@ -5,7 +5,8 @@ set -e
 TAG="$1"
 REPO="termux-flutter"
 OWNER="mumumusuc"
-TOKEN="$2"
+ASSET="${2:-release}"
+TOKEN="$3"
 
 echo "Fetching release $TAG."
 ID=$(curl -s \
@@ -28,14 +29,14 @@ update() {
     curl -# \
          -H "Authorization: token $TOKEN" \
          -H "Content-Type: $(file -b --mime-type $2)" \
-         -d @$2 \
+         --data-binary @$2 \
          "https://uploads.github.com/repos/$OWNER/$REPO/releases/$1/assets?name=$(basename $2)" \
     > /dev/null
 }
 
 echo "Updating engine."
-update $ID "release/engine.sha256"
-update $ID "release/engine.tar.gz"
+update $ID "$ASSET/engine.sha256"
+update $ID "$ASSET/engine.tar.gz"
 echo "Updating dart-sdk."
-update $ID "release/dart-sdk.sha256"
-update $ID "release/dart-sdk.tar.gz"
+update $ID "$ASSET/dart-sdk.sha256"
+update $ID "$ASSET/dart-sdk.tar.gz"
