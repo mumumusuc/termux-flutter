@@ -1,7 +1,9 @@
-.PHONY: sync config build install
-# apt install freetype
+.PHONY: sync config build install test publish
+
+TAG      = $(error 'empty tag.')
 ARGS     =
 ROOT     = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+TOKEN    = $(error 'empty token.')
 RUNTIME  = debug
 DART_SDK = $(PREFIX)/lib/dart-sdk
 
@@ -23,9 +25,9 @@ ifeq ($(filter "$(RUNTIME)", "debug" "profile" "release"),)
 $(error Invalid runtime mode `$(RUNTIME)`, possible values are [debug|profile|release])
 endif
 
-ifeq ($(shell command -v vpython3),)
-$(error env `PATH` not set. Consider running `export PATH=$$(pwd):$$PATH`)
-endif
+#ifeq ($(shell command -v vpython3),)
+#$(error env `PATH` not set. Consider running `export PATH=$$(pwd):$$PATH`)
+#endif
 
 override CONFIGURE += 						\
 	--target-os linux 						\
@@ -55,6 +57,9 @@ VERSION = $(OUTPUT)/engine.version
 INSTALL = $(ROOT)release
 FLUTTER = $(ROOT)src/flutter
 
+INSTALL.ENGINE = $(INSTALL)/engine.tar.gz
+INSTALL.DART_SDK = $(INSTALL)/dart-sdk.tar.gz
+
 PREBUILT = $(PREBUILT.clang) $(PREBUILT.ninja) $(PREBUILT.gn) $(PREBUILT.dart)
 PREBUILT.clang := $(addprefix src/buildtools/linux-arm64/clang/bin/,analyze-build clang clang++ clang-apply-replacements clang-cl clang-cpp clang-doc clang-format clang-include-fixer clang-refactor clang-scan-deps clang-tidy clangd dsymutil find-all-symbols git-clang-format intercept-build ld.lld ld64.lld lld lld-link llvm-ar llvm-bcanalyzer llvm-bitcode-strip llvm-cov llvm-cxxfilt llvm-debuginfod-find llvm-dlltool llvm-dwarfdump llvm-dwp llvm-gsymutil llvm-ifs llvm-install-name-tool llvm-lib llvm-libtool-darwin llvm-lipo llvm-ml llvm-mt llvm-nm llvm-objcopy llvm-objdump llvm-otool llvm-pdbutil llvm-profdata llvm-ranlib llvm-rc llvm-readelf llvm-readobj llvm-size llvm-strip llvm-symbolizer llvm-undname llvm-windres llvm-xray run-clang-tidy sancov scan-build-py wasm-ld)
 PREBUILT.ninja := $(addprefix src/flutter/third_party/ninja/,ninja)
@@ -73,15 +78,21 @@ sync: $(PREBUILT)
 	git -C src/third_party/skia apply ../../../patches/skia.patch
 	sed -i 's/"-Wno-deprecated-literal-operator",//g' src/build/config/compiler/BUILD.gn
 
-install: install.engine install.dart-sdk
+install: $(INSTALL.ENGINE) $(INSTALL.DART_SDK)
+	@cd $(INSTALL) &&\
+	sha256sum engine.tar.gz > engine.sha256 &&\
+	sha256sum dart-sdk.tar.gz > dart-sdk.sha256
 
-install.engine: $(VERSION)
+$(INSTALL.ENGINE): $(VERSION)
 	@$(PYTHON) $(ROOT)engine-install.py -v $(VERSION) --$(RUNTIME) $(OUTPUT) -o $(INSTALL)/engine.tar.gz
-	@echo engine.tar.gz installed to $(INSTALL)
+	@echo engine.tar.gz installed into $(INSTALL)
 
-install.dart-sdk: $(VERSION)
+$(INSTALL.DART_SDK): $(VERSION)
+	@termux-elf-cleaner --quiet $(OUTPUT)/dart-sdk/bin/dart
+	@termux-elf-cleaner --quiet $(OUTPUT)/dart-sdk/bin/dartaotruntime
+	@termux-elf-cleaner --quiet $(OUTPUT)/dart-sdk/bin/utils/*
 	@$(PYTHON) $(ROOT)dart-sdk-install.py $(OUTPUT) -v $(VERSION) -o $(INSTALL)/dart-sdk.tar.gz
-	@echo dart-sdk.tar.gz installed to $(INSTALL)
+	@echo dart-sdk.tar.gz installed into $(INSTALL)
 
 config: $(CONFIG)
 
@@ -89,7 +100,7 @@ $(CONFIG): $(FLUTTER)/tools/gn
 	$(PYTHON) $(FLUTTER)/tools/gn $(CONFIGURE) --gn-args '$(GN_ARGS)' $(ARGS)
 
 $(VERSION): $(FLUTTER)
-	$(GIT) -C $(FLUTTER) rev-parse HEAD > $@
+	@$(GIT) -C $(FLUTTER) rev-parse HEAD > $@
 
 #$(FLUTTER): sync
 
@@ -103,3 +114,13 @@ $(PREBUILT.dart): $(DART_SDK)
 	@$(call link,$<,$@)
 $(PREFIX)/bin/%:
 	@$(error '`$(notdir $@)` not found.')
+
+test: override FLUTTER := $(ROOT)../flutter
+test: install
+	@$(GIT) -C $(FLUTTER) fetch --tags
+	@$(GIT) -C $(FLUTTER) checkout $(TAG)
+	@$(PYTHON) $(ROOT)../install.py -e $(INSTALL.ENGINE) -d $(INSTALL.DART_SDK) $(FLUTTER)
+	@$(FLUTTER)/bin/flutter doctor
+
+publish: install
+	@$(ROOT)publish $(TAG) $(TOKEN)

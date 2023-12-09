@@ -1,0 +1,41 @@
+#!/bin/env bash
+
+set -e
+
+TAG="$1"
+REPO="termux-flutter"
+OWNER="mumumusuc"
+TOKEN="$2"
+
+echo "Fetching release $TAG."
+ID=$(curl -s \
+          -H "Authorization: token $TOKEN" \
+          "https://api.github.com/repos/$OWNER/$REPO/releases/tags/$TAG" \
+    | jq ".id")
+
+if [ $ID == 'null' ]; then
+echo "Creating new release $TAG."
+ID=$(curl -# \
+          -X POST \
+          -H "Authorization: token $TOKEN" \
+          -d "{\"tag_name\": \"$TAG\", \"name\": \"Flutter $TAG\"}" \
+          "https://api.github.com/repos/$OWNER/$REPO/releases" \
+    | jq ".id" )
+fi
+echo "Done with $ID."
+
+update() {
+    curl -# \
+         -H "Authorization: token $TOKEN" \
+         -H "Content-Type: $(file -b --mime-type $2)" \
+         -d @$2 \
+         "https://uploads.github.com/repos/$OWNER/$REPO/releases/$1/assets?name=$(basename $2)" \
+    > /dev/null
+}
+
+echo "Updating engine."
+update $ID "release/engine.sha256"
+update $ID "release/engine.tar.gz"
+echo "Updating dart-sdk."
+update $ID "release/dart-sdk.sha256"
+update $ID "release/dart-sdk.tar.gz"

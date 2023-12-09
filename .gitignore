@@ -5,6 +5,8 @@ engine/.cipd_client
 engine/.cipd_client_cache
 engine/.versions
 engine/_bad_scm
+engine/token
+flutter
 **/__pycache__
 .cipd
 .gclient_*

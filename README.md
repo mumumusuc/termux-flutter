@@ -8,14 +8,14 @@ Run Flutter on Termux !
 </p>
 
 ## Install [online]
-```
+```bash
 bash -c "$(curl https://raw.githubusercontent.com/mumumusuc/termux-flutter/main/install)"
 ```
 >[!IMPORTANT]
->the script will download latest release assets and clone *flutter* into your **current** directory
+>the script will download latest release assets and clone *flutter* into your **CURRENT** directory
 
 Before `flutter run` please remember to install these dependencies and set `DISPLAY` env.
-```
+```bash
 apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
 
 export DISPLAY=:0
@@ -23,7 +23,7 @@ termux-x11 :0 >/dev/null 2>&1 &
 ```
 
 Now create a project then run it. 
-```
+```bash
 flutter create hello_world && cd hello_world
 flutter run
 ```
