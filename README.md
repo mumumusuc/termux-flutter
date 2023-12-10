@@ -9,7 +9,7 @@ Run Flutter on Termux !
 
 ## Install [online]
 ```bash
-bash -c "$(curl https://raw.githubusercontent.com/mumumusuc/termux-flutter/main/install)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mumumusuc/termux-flutter/main/install)"
 ```
 >[!IMPORTANT]
 >the script will download latest release assets and clone *flutter* into your **CURRENT** directory

@@ -1,13 +1,13 @@
 #!/bin/env bash
 
 set -e
+set -o pipefail
 
 VERSION="$1"
 ROOTDIR="$(dirname $(realpath $0))"
 FLUTTER="$ROOTDIR/flutter"
 
-#GIT_CDN="https://ghps.cc/"
-GIT_CDN=
+#GIT_CDN="hub.gitmirror.com/"
 BASE_URL="${GIT_CDN}https://github.com/mumumusuc/termux-flutter/releases/download"
 BASE_RAW="${GIT_CDN}https://raw.githubusercontent.com/mumumusuc/termux-flutter/main"
 
@@ -28,52 +28,59 @@ command -v curl > /dev/null 2>&1 || {
 }
 
 if [ -z "$VERSION" ]; then 
-    VERSION=$(curl -Ss "https://api.github.com/repos/mumumusuc/termux-flutter/releases/latest" | grep "tag_name" | tr -cd "[0-9].")
-fi
-    
-if [ -z "$VERSION" ] || [ "$VERSION" == "null" ]; then 
-    >&2 echo
-    >&2 echo "Empty version, exit."
-    exit 1
+    VERSION=$(curl -fsSL "https://api.github.com/repos/mumumusuc/termux-flutter/releases/latest" | grep "tag_name" | sed 's|.*"tag_name"\ *:\ *"\([^"]*\)".*|\1|')
 fi
 
+curl -sSL "https://api.github.com/repos/mumumusuc/termux-flutter/releases/tags/$VERSION" | grep "\"tag_name\": \"$VERSION\"" > /dev/null || {
+    if [ ${PIPESTATUS[0]} -eq 0 ]; then
+        >&2 echo "Version \"$VERSION\" not found."
+    fi
+    exit 1
+}
+
+failure() {
+    >&2 echo
+    >&2 echo "Failed to retrieve file from: \"$1\""
+    >&2 echo
+    rm -f -- "$1"
+    exit 1
+}
+
 download() {
-    curl --progress-bar --retry 3 --continue-at - --location --output "$1" "$2" 2>&1 || {
-        >&2 echo
-        >&2 echo "Failed to retrieve the $(basename "$1") from: $2"
-        >&2 echo
-        rm -f -- "$1"
+    TAR="$1.tar.gz"
+    SHA="$1.sha256"
+    
+    URL="$BASE_URL/$VERSION/$SHA" && curl -fsSLO $URL || { 
+        failure $URL
+    }
+
+    sha256sum -c $SHA --status 2>/dev/null && {
+        return 0
+    }
+
+    echo "Downloading $TAR ..."
+
+    URL="$BASE_URL/$VERSION/$TAR" && curl -#fLO $URL --retry 3 --continue-at - || {
+        failure $URL
+    } && sha256sum -c $SHA --status || {
+        >&2 echo "Sha256sum check failed, please try again."
+        rm -f -- "$SHA"
+        rm -f -- "$TAR"
         exit 1
     }
 }
 
-ensure() {
-    TAR="$1.tar.gz"
-    SHA="$1.sha256"
-    
-    echo "Downloading $SHA."
-    download "$SHA" "$BASE_URL/$VERSION/$SHA" && sha256sum -c $SHA --status 2>/dev/null || {
-        echo "Downloading $TAR ..."
-        download "$TAR" "$BASE_URL/$VERSION/$TAR" && sha256sum -c $SHA --status || {
-            >&2 echo "Sha256sum check failed."
-            rm -f -- "$SHA"
-            rm -f -- "$TAR"
-            exit 1
-        }
-    }
-}
-
 main() {
-    echo "Got version $VERSION."
-    echo "Downloading install.py."
-    download "install.py" "$BASE_RAW/install.py"
+    echo "Got version \"$VERSION\"."
 
-    ensure "engine"   
-    ensure "dart-sdk"
+    URL="$BASE_RAW/install.py" && curl -fsSLO $URL || {
+        failure $URL
+    }
+    download "engine"   
+    download "dart-sdk"
 
     if [ ! -d $FLUTTER ]; then 
-        git clone --depth=1 https://www.github.com/flutter/flutter.git -b $VERSION $FLUTTER
-        echo
+        git clone --depth=1 "https://www.github.com/flutter/flutter.git" -b $VERSION $FLUTTER
     fi
         
     TAG="$(git -C $FLUTTER describe --tags HEAD)" || {
@@ -84,9 +91,9 @@ main() {
     }
     
     if [ "$TAG" != "$VERSION" ]; then
+        echo
         git -C $FLUTTER fetch --tags
         git -C $FLUTTER checkout $VERSION
-        echo
     fi
 
     python3 install.py -d dart-sdk.tar.gz -e engine.tar.gz $FLUTTER
@@ -98,4 +105,4 @@ main() {
     echo "Installation is complete. Now you can add \"$FLUTTER/bin\" into your PATH."
 }
 
-pushd $TMPDIR >/dev/null && main "$@"
+cd $TMPDIR && main "$@"
