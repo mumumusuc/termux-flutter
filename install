@@ -2,13 +2,13 @@
 
 set -e
 
-VERSION="${1:-3.16.3}"
+VERSION="$1"
 ROOTDIR="$(dirname $(realpath $0))"
 FLUTTER="$ROOTDIR/flutter"
 
 #GIT_CDN="https://ghps.cc/"
 GIT_CDN=
-BASE_URL="${GIT_CDN}https://github.com/mumumusuc/termux-flutter/releases/download/$VERSION"
+BASE_URL="${GIT_CDN}https://github.com/mumumusuc/termux-flutter/releases/download"
 BASE_RAW="${GIT_CDN}https://raw.githubusercontent.com/mumumusuc/termux-flutter/main"
 
 command -v git > /dev/null 2>&1 || {
@@ -27,6 +27,16 @@ command -v curl > /dev/null 2>&1 || {
     exit 1
 }
 
+if [ -z "$VERSION" ]; then 
+    VERSION=$(curl -Ss "https://api.github.com/repos/mumumusuc/termux-flutter/releases/latest" | grep "tag_name" | tr -cd "[0-9].")
+fi
+    
+if [ -z "$VERSION" ] || [ "$VERSION" == "null" ]; then 
+    >&2 echo
+    >&2 echo "Empty version, exit."
+    exit 1
+fi
+
 download() {
     curl --progress-bar --retry 3 --continue-at - --location --output "$1" "$2" 2>&1 || {
         >&2 echo
@@ -42,9 +52,9 @@ ensure() {
     SHA="$1.sha256"
     
     echo "Downloading $SHA."
-    download "$SHA" "$BASE_URL/$SHA" && sha256sum -c $SHA --status 2>/dev/null || {
+    download "$SHA" "$BASE_URL/$VERSION/$SHA" && sha256sum -c $SHA --status 2>/dev/null || {
         echo "Downloading $TAR ..."
-        download "$TAR" "$BASE_URL/$TAR" && sha256sum -c $SHA --status || {
+        download "$TAR" "$BASE_URL/$VERSION/$TAR" && sha256sum -c $SHA --status || {
             >&2 echo "Sha256sum check failed."
             rm -f -- "$SHA"
             rm -f -- "$TAR"
@@ -54,6 +64,7 @@ ensure() {
 }
 
 main() {
+    echo "Got version $VERSION."
     echo "Downloading install.py."
     download "install.py" "$BASE_RAW/install.py"
 
