@@ -16,7 +16,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/mumumusuc/termux-flutter
 
 Before `flutter run` please remember to install these dependencies and set `DISPLAY` env.
 ```bash
-apt install gtk3 fontconfig xorgproto ninja cmake clang pkg-config
+apt install which gtk3 fontconfig xorgproto ninja cmake clang pkg-config
 
 export DISPLAY=:0
 termux-x11 :0 >/dev/null 2>&1 &
