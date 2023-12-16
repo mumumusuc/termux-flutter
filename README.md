@@ -60,7 +60,7 @@ Open [Termux:X11](https://github.com/termux/termux-x11/releases) and enjoy the *
 
 + **Android**
   
-  - [Install android-sdk](https://github.com/AndroidIDEOfficial/androidide-tools/?tab=readme-ov-file)
+  - [Install android-sdk](https://github.com/mumumusuc/termux-android-sdk/releases)
 
   - [Connect android device](https://github.com/bdloser404/Fluttermux?tab=readme-ov-file#how-to-connect-adb-devices)
 
