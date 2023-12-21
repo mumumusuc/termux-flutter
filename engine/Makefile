@@ -111,12 +111,12 @@ $(PREBUILT.dart): $(DART_SDK)
 $(PREFIX)/bin/%:
 	@$(error '`$(notdir $@)` not found.')
 
-test: override FLUTTER := $(ROOT)../flutter
+test: TARGET := $(ROOT)../flutter
 test: release
-	@$(GIT) -C $(FLUTTER) fetch --tags
-	@$(GIT) -C $(FLUTTER) checkout $(TAG)
-	@$(PYTHON) $(ROOT)../install.py -e $(RELEASE.ENGINE) -d $(RELEASE.DART_SDK) $(FLUTTER)
-	@$(FLUTTER)/bin/flutter doctor
+	@$(GIT) -C $(TARGET) fetch --tags
+	@$(GIT) -C $(TARGET) checkout $(TAG)
+	@$(PYTHON) $(ROOT)../install.py -e $(RELEASE.ENGINE) -d $(RELEASE.DART_SDK) $(TARGET)
+	@$(TARGET)/bin/flutter doctor
 
 publish: release
 	@$(ROOT)publish $(TAG) $(RELEASE) $(TOKEN)
