@@ -27,6 +27,14 @@ command -v curl > /dev/null 2>&1 || {
     exit 1
 }
 
+command -v python3 > /dev/null 2>&1 || {
+    >&2 echo
+    >&2 echo 'Missing "python3" tool.'
+    >&2 echo 'Consider running "apt install python3".'
+    echo
+    exit 1
+}
+
 if [ -z "$VERSION" ]; then 
     VERSION=$(curl -fsSL "https://api.github.com/repos/mumumusuc/termux-flutter/releases/latest" | grep "tag_name" | sed 's|.*"tag_name"\ *:\ *"\([^"]*\)".*|\1|')
 fi
