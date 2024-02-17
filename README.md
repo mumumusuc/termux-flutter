@@ -1,4 +1,6 @@
-# Flutter-Termux
+# Flutter-Termux 
+![GitHub Release](https://img.shields.io/github/v/release/mumumusuc/termux-flutter)
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/mumumusuc/termux-flutter/latest/total)
 
 Run Flutter on Termux !
 
@@ -9,24 +11,14 @@ Run Flutter on Termux !
 
 ## Install 
 
-For the latest version, run
-
-```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/mumumusuc/termux-flutter/main/install)"
+Download `flutter.deb` from [release](https://github.com/mumumusuc/termux-flutter/releases) page, then run 
 ```
-or a specific version if you are interested in
-
-```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/mumumusuc/termux-flutter/main/install)" - <version>
+apt install x11-repo
+apt install /path/to/flutter.deb
 ```
 
->[!WARNING]
->the script will download latest release assets and clone *flutter* into your **CURRENT** directory
-
-Before `flutter run` please remember to install these dependencies and set `DISPLAY` env.
+Before `flutter run` please remember to set `DISPLAY` and launch `termux-x11`.
 ```bash
-apt install x11-repo && apt install which gtk3 fontconfig xorgproto ninja cmake clang pkg-config
-
 export DISPLAY=:0
 termux-x11 :0 >/dev/null 2>&1 &
 ```
