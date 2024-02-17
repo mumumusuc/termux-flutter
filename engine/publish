@@ -16,13 +16,21 @@ ID=$(curl -s \
 
 if [ $ID == 'null' ]; then
 echo "Creating new release $TAG."
-ID=$(curl -# \
+RES=$(curl -# \
           -X POST \
           -H "Authorization: token $TOKEN" \
           -d "{\"tag_name\": \"$TAG\", \"name\": \"Flutter $TAG\"}" \
-          "https://api.github.com/repos/$OWNER/$REPO/releases" \
-    | jq ".id" )
+          "https://api.github.com/repos/$OWNER/$REPO/releases" )
+ID=$(echo $RES | jq ".id")
 fi
+
+if [ $ID == 'null' ]; then
+    2>&1 echo "error create new release with tag $TAG"
+    2>&1
+    2>&1 echo $RES
+    exit -1
+fi
+
 echo "Done with $ID."
 
 update() {
@@ -34,9 +42,11 @@ update() {
     > /dev/null
 }
 
-echo "Updating engine."
-update $ID "$ASSET/engine.sha256"
-update $ID "$ASSET/engine.tar.gz"
-echo "Updating dart-sdk."
-update $ID "$ASSET/dart-sdk.sha256"
-update $ID "$ASSET/dart-sdk.tar.gz"
+#echo "Updating engine."
+#update $ID "$ASSET/engine.sha256"
+#update $ID "$ASSET/engine.tar.gz"
+#echo "Updating dart-sdk."
+#update $ID "$ASSET/dart-sdk.sha256"
+#update $ID "$ASSET/dart-sdk.tar.gz"
+
+update $ID "$ASSET/flutter.deb"

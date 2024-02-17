@@ -1,6 +1,6 @@
 .PHONY: sync config build release test publish
 
-TAG      = $(error 'empty tag.')
+TAG      = $(shell $(GIT) -C $(FLUTTER) describe --tags)
 ARGS     =
 ROOT     = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TOKEN    = $(error 'empty token.')
@@ -49,6 +49,11 @@ override GN_ARGS += 							\
 	use_default_linux_sysroot=false				\
 	is_desktop_linux=false 						\
 	test_enable_vulkan=false 					\
+	skia_use_vulkan=false 						\
+	shell_enable_vulkan=false 					\
+	embedder_enable_vulkan=false 				\
+	impeller_enable_vulkan=false 				\
+	impeller_enable_vulkan_playgrounds=false 	\
 	dart_platform_sdk=false
 
 OUTPUT  = $(ROOT)src/out/linux_$(RUNTIME)_arm64
@@ -72,16 +77,22 @@ endef
 
 sync: $(PREBUILT)
 	@pip3 install httplib2 -q
-	$(PYTHON) gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
-	git -C src apply ../patches/src.patch
-	git -C src/third_party/dart apply ../../../patches/dart.patch
-	git -C src/third_party/skia apply ../../../patches/skia.patch
-	sed -i 's/"-Wno-deprecated-literal-operator",//g' src/build/config/compiler/BUILD.gn
+	$(PYTHON) $(ROOT)gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
+	git -C $(ROOT)src apply ../patches/src.patch
+	git -C $(ROOT)src/flutter apply ../patches/flutter.patch
+	git -C $(ROOT)src/flutter/third_party/skia apply ../patches/skia.patch
+	git -C $(ROOT)src/third_party/dart apply ../../../patches/dart.patch
+	sed -i 's/"-Wno-deprecated-literal-operator",//g' $(ROOT)src/build/config/compiler/BUILD.gn
 
+release: TARGET := $(ROOT)../flutter
 release: $(RELEASE.ENGINE) $(RELEASE.DART_SDK)
 	@cd $(RELEASE) &&\
 	sha256sum engine.tar.gz > engine.sha256 &&\
 	sha256sum dart-sdk.tar.gz > dart-sdk.sha256
+
+	@$(ROOT)sync_flutter.sh $(ROOT)
+	@$(PYTHON) $(ROOT)../install.py -e $(RELEASE.ENGINE) -d $(RELEASE.DART_SDK) $(TARGET)
+	@termux-create-package --deb-dir $(RELEASE) --files-dir "$(ROOT).." manifest.json
 
 $(RELEASE.ENGINE): $(VERSION)
 	@$(PYTHON) $(ROOT)engine-install.py -v $(VERSION) --$(RUNTIME) $(OUTPUT) -o $(RELEASE.ENGINE)
@@ -111,12 +122,9 @@ $(PREBUILT.dart): $(DART_SDK)
 $(PREFIX)/bin/%:
 	@$(error '`$(notdir $@)` not found.')
 
-test: TARGET := $(ROOT)../flutter
+test: FLUTTER := $(ROOT)../flutter
 test: release
-	@$(GIT) -C $(TARGET) fetch --tags
-	@$(GIT) -C $(TARGET) checkout $(TAG)
-	@$(PYTHON) $(ROOT)../install.py -e $(RELEASE.ENGINE) -d $(RELEASE.DART_SDK) $(TARGET)
-	@$(TARGET)/bin/flutter doctor
+	@$(FLUTTER)/bin/flutter doctor
 
 publish: release
 	@$(ROOT)publish $(TAG) $(RELEASE) $(TOKEN)

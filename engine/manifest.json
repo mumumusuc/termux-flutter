@@ -1,0 +1,27 @@
+{
+    "control": {
+        "Package": "flutter",
+        "Version": "3.19.0",
+        "Architecture": "aarch64",
+        "Maintainer": "mumumusuc <mumumusuc@gmail.com>",
+        "Pre-Depends": "x11-repo",
+        "Depends": "which, gtk3, fontconfig, xorgproto, ninja, cmake, clang, pkg-config",
+        "Homepage": "https://www.github.com/mumumusuc/termux-flutter",
+        "Description": [ "flutter for termux" ]
+    },
+    "deb_dir": "release",
+    "files_dir": "..",
+    "deb_name": "flutter.deb",
+    "data_files": {
+        "opt/flutter": { 
+            "source": "flutter", 
+            "source_recurse": true 
+        },
+        "opt/flutter/bin/flutter": {
+            "source": "flutter/bin/flutter",
+            "symlink_destinations": [
+                "bin/flutter"
+            ]
+        }
+    }
+}
