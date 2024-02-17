@@ -17,19 +17,12 @@ apt install x11-repo
 apt install /path/to/flutter.deb
 ```
 
-Before `flutter run` please remember to set `DISPLAY` and launch `termux-x11`.
-```bash
-export DISPLAY=:0
-termux-x11 :0 >/dev/null 2>&1 &
-```
+Now `flutter` has been installed to `$PREFIX/opt/flutter`, test it with `flutter doctor -v`.
 
-Now create a project then run it. 
-```bash
-flutter create hello_world && cd hello_world
-flutter run
+To uninstall `flutter` run 
 ```
-
-Open [Termux:X11](https://github.com/termux/termux-x11/releases) and enjoy the *flutter* on Termux.
+apt remove flutter
+```
 
 ## Flavors 
 
