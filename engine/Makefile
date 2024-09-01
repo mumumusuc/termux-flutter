@@ -66,7 +66,7 @@ RELEASE.ENGINE   = $(RELEASE)/engine.tar.gz
 RELEASE.DART_SDK = $(RELEASE)/dart-sdk.tar.gz
 
 PREBUILT = $(PREBUILT.clang) $(PREBUILT.ninja) $(PREBUILT.gn) $(PREBUILT.dart)
-PREBUILT.clang := $(addprefix src/buildtools/linux-arm64/clang/bin/,analyze-build clang clang++ clang-apply-replacements clang-cl clang-cpp clang-doc clang-format clang-include-fixer clang-refactor clang-scan-deps clang-tidy clangd dsymutil find-all-symbols git-clang-format intercept-build ld.lld ld64.lld lld lld-link llvm-ar llvm-bcanalyzer llvm-bitcode-strip llvm-cov llvm-cxxfilt llvm-debuginfod-find llvm-dlltool llvm-dwarfdump llvm-dwp llvm-gsymutil llvm-ifs llvm-install-name-tool llvm-lib llvm-libtool-darwin llvm-lipo llvm-ml llvm-mt llvm-nm llvm-objcopy llvm-objdump llvm-otool llvm-pdbutil llvm-profdata llvm-ranlib llvm-rc llvm-readelf llvm-readobj llvm-size llvm-strip llvm-symbolizer llvm-undname llvm-windres llvm-xray run-clang-tidy sancov scan-build-py wasm-ld)
+PREBUILT.clang := $(addprefix src/flutter/buildtools/linux-arm64/clang/bin/,analyze-build clang clang++ clang-apply-replacements clang-cl clang-cpp clang-doc clang-format clang-include-fixer clang-refactor clang-scan-deps clang-tidy clangd dsymutil find-all-symbols git-clang-format intercept-build ld.lld ld64.lld lld lld-link llvm-ar llvm-bcanalyzer llvm-bitcode-strip llvm-cov llvm-cxxfilt llvm-debuginfod-find llvm-dlltool llvm-dwarfdump llvm-dwp llvm-gsymutil llvm-ifs llvm-install-name-tool llvm-lib llvm-libtool-darwin llvm-lipo llvm-ml llvm-mt llvm-nm llvm-objcopy llvm-objdump llvm-otool llvm-pdbutil llvm-profdata llvm-ranlib llvm-rc llvm-readelf llvm-readobj llvm-size llvm-strip llvm-symbolizer llvm-undname llvm-windres llvm-xray run-clang-tidy sancov scan-build-py wasm-ld)
 PREBUILT.ninja := $(addprefix src/flutter/third_party/ninja/,ninja)
 PREBUILT.gn    := $(addprefix src/flutter/third_party/gn/,gn)
 PREBUILT.dart  := $(addprefix src/third_party/dart/tools/sdks/,dart-sdk)
@@ -78,10 +78,10 @@ endef
 sync: $(PREBUILT)
 	@pip3 install httplib2 -q
 	$(PYTHON) $(ROOT)gclient.py sync $(ARGS) -DR --with_branch_heads --with_tags --no-history
-	git -C $(ROOT)src apply ../patches/src.patch
-	git -C $(ROOT)src/flutter apply ../patches/flutter.patch
-	git -C $(ROOT)src/flutter/third_party/skia apply ../patches/skia.patch
-	git -C $(ROOT)src/third_party/dart apply ../../../patches/dart.patch
+	git -C $(ROOT)src apply $(ROOT)patches/src.patch
+	git -C $(ROOT)src/flutter apply $(ROOT)patches/flutter.patch
+	git -C $(ROOT)src/flutter/third_party/skia apply $(ROOT)patches/skia.patch
+	git -C $(ROOT)src/flutter/third_party/dart apply $(ROOT)patches/dart.patch
 	sed -i 's/"-Wno-deprecated-literal-operator",//g' $(ROOT)src/build/config/compiler/BUILD.gn
 
 release: TARGET := $(ROOT)../flutter
@@ -92,7 +92,7 @@ release: $(RELEASE.ENGINE) $(RELEASE.DART_SDK)
 
 	@$(ROOT)sync_flutter.sh $(ROOT)
 	@$(PYTHON) $(ROOT)../install.py -e $(RELEASE.ENGINE) -d $(RELEASE.DART_SDK) $(TARGET)
-	@termux-create-package --deb-dir $(RELEASE) --files-dir "$(ROOT).." manifest.json
+	@termux-create-package manifest.json
 
 $(RELEASE.ENGINE): $(VERSION)
 	@$(PYTHON) $(ROOT)engine-install.py -v $(VERSION) --$(RUNTIME) $(OUTPUT) -o $(RELEASE.ENGINE)

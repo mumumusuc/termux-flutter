@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 148c97e..52c92ed 100644
+index d38a4cf..be86508 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -346,10 +346,24 @@ config("compiler") {
+@@ -352,10 +352,24 @@ config("compiler") {
    if (is_linux) {
      cflags += [ "-pthread" ]
      ldflags += [ "-pthread" ]
@@ -29,7 +29,7 @@ index 148c97e..52c92ed 100644
        cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
      }
    }
-@@ -532,9 +546,7 @@ config("runtime_library") {
+@@ -523,9 +537,8 @@ config("runtime_library") {
      cflags_objcc += [ "-nostdinc++" ]
  
      # Unwind seemes to be in these libraries in Linux.
@@ -37,6 +37,7 @@ index 148c97e..52c92ed 100644
 -      ldflags += [ "-nostdlib++" ]
 -    }
 +    ldflags += [ "-nostdlib++" ]
++
      include_dirs = [
-       "//third_party/libcxx/include",
-       "//third_party/libcxxabi/include",
+       "//flutter/third_party/libcxx/include",
+       "//flutter/third_party/libcxxabi/include",

@@ -52,7 +52,7 @@ def flutter_sdk(): return [
     'impellerc',
     'libpath_ops.so',
     'libtessellator.so',
-    'frontend_server.dart.snapshot',
+    'frontend_server_aot.dart.snapshot',
     'gen/const_finder.dart.snapshot',
     'gen/flutter/lib/snapshot/isolate_snapshot.bin',
     'gen/flutter/lib/snapshot/vm_isolate_snapshot.bin']

@@ -34,7 +34,7 @@ def parse_args(args):
 
 
 def check_version(flutter, version, name):
-    if not os.path.isfile(flutter) and version != flutter:
+    if not os.path.isfile(flutter) and version.strip() != flutter.strip():
         print(
             'inconsisdent engine version:\n'
             '  flutter:\n'

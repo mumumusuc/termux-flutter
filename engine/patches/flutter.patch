@@ -12,29 +12,29 @@ index f94799b972..8d4f3d9da2 100644
  # TODO (https://github.com/flutter/flutter/issues/107357):
  # impeller_enable_vulkan currently requires skia to not use VMA, which in turn
 diff --git a/shell/common/BUILD.gn b/shell/common/BUILD.gn
-index 310b49fa89..06f7bd4efe 100644
+index 8e2d9f2174..14e6633669 100644
 --- a/shell/common/BUILD.gn
 +++ b/shell/common/BUILD.gn
-@@ -348,12 +348,12 @@ if (enable_unittests) {
+@@ -352,14 +352,12 @@ if (enable_unittests) {
        # TODO(63837): This test is hard-coded to use a TestGLSurface so it cannot
        # run on fuchsia or when GL is not enabled.
        sources += [ "shell_io_manager_unittests.cc" ]
 -      deps += [ "//flutter/third_party/swiftshader" ]
-+      #deps += [ "//flutter/third_party/swiftshader" ]
      }
  
      if (shell_enable_gl) {
        deps += [
+         "//flutter/third_party/angle:libEGL_static",
+         "//flutter/third_party/angle:libGLESv2_static",
 -        "//flutter/third_party/swiftshader",
-+        #"//flutter/third_party/swiftshader",
-         "//third_party/angle:libEGL_static",
-         "//third_party/angle:libGLESv2_static",
        ]
+     }
+   }
 diff --git a/shell/testing/BUILD.gn b/shell/testing/BUILD.gn
-index 7685d3a80e..974b0062f7 100644
+index 28a19c75d1..e1ac878c3b 100644
 --- a/shell/testing/BUILD.gn
 +++ b/shell/testing/BUILD.gn
-@@ -51,7 +51,7 @@ executable("testing") {
+@@ -54,7 +54,7 @@ executable("testing") {
      deps += [
        ":tester_gpu_configuration",
        "//flutter/impeller",

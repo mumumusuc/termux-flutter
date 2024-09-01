@@ -1,7 +1,7 @@
 {
     "control": {
         "Package": "flutter",
-        "Version": "3.19.0",
+        "Version": "3.24.1",
         "Architecture": "aarch64",
         "Maintainer": "mumumusuc <mumumusuc@gmail.com>",
         "Pre-Depends": "x11-repo",

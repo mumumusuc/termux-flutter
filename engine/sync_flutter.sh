@@ -1,7 +1,7 @@
 #/bin/env bash
 
-ENGINE_DIR="$1/src/flutter"
-FLUTTER_DIR="$1/../flutter"
+ENGINE_DIR="${1}src/flutter"
+FLUTTER_DIR="${1}../flutter"
 
 ENGINE_TAG=$(git -C $ENGINE_DIR describe --tags)
 
