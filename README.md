@@ -29,7 +29,7 @@ apt remove flutter
 
 ## Flavors 
 
-+ **Linux**(default)
++ **Linux**
   
   Use [Termux:X11](https://github.com/termux/termux-x11/releases) to preview your *flutter* app.
 
