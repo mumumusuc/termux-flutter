@@ -31,11 +31,11 @@ apt remove flutter
 
 + **Linux**(default)
   
-  *Termux* is treated as *Linux* by default, use [Termux:X11](https://github.com/termux/termux-x11/releases) to preview your *flutter* app.
+  Use [Termux:X11](https://github.com/termux/termux-x11/releases) to preview your *flutter* app.
 
   ```bash
   export DISPLAY=:0 && termux-x11 :0 >/dev/null 2>&1 &
-  flutter run
+  flutter run -d linux
   ```
 
   In addition, edit `linux/my_application.cc` to make preview fit to your screen.
