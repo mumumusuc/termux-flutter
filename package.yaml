@@ -1,0 +1,131 @@
+# %YAML 1.2
+# root: path/to/flutter
+# arcĥ: build arch
+# version: engine version
+define:
+  prefix: '"data/data/com.termux/files/usr"'
+  distro: '"data/data/com.termux/files/usr/opt/flutter"'
+
+control:
+  Package: flutter
+  Version: $tag
+  Architecture: $architecture
+  Maintainer: mumumusuc <mumumusuc@gmail.com>
+  Pre-Depends: x11-repo
+  Depends: which, gtk3, xorgproto, ninja, cmake, clang, pkg-config
+  Homepage: https://www.github.com/flutter/flutter
+  Description: Flutter makes it easy and fast to build beautiful apps for mobile and beyond
+
+resource:
+  flutter:
+    source: $root
+    output: $distro
+    git: true
+
+  flutter_gpu:
+    source: $root/engine/src/flutter/lib/gpu
+    output: $distro/bin/cache/pkg/flutter_gpu
+
+  sky_engine:
+    source: $any/gen/dart-pkg/sky_engine
+    output: $distro/bin/cache/pkg/sky_engine
+    define:
+      any: &any output.any
+
+  dart_sdk:
+    source: $any/dart-sdk
+    output: $out/dart-sdk
+    define:
+      any: *any
+      out: &cache f'{distro}/bin/cache'
+  
+  artifacts:
+    source: 
+      - $root/engine/src/flutter/impeller/compiler/shader_lib
+      - $any/flutter_tester
+      - $any/font-subset
+      - $any/icudtl.dat
+      - $any/impellerc
+      - $any/gen_snapshot
+      - $any/libpath_ops.so
+      - $any/libtessellator.so
+      - $any/gen/frontend_server_aot.dart.snapshot
+      - $any/gen/const_finder.dart.snapshot
+      - $any/gen/flutter/lib/snapshot/isolate_snapshot.bin
+      - $any/gen/flutter/lib/snapshot/vm_isolate_snapshot.bin
+    output:
+      - $eng/linux-$arch
+    define:
+      any: *any
+      eng: &eng f'{distro}/bin/cache/artifacts/engine'
+
+  flutter_linux_gtk: &gtk
+    source:
+      - $out/flutter_linux
+      - $out/gen_snapshot
+      - $out/libflutter_linux_gtk.so
+    output:
+      - $eng/linux-$arch$fix
+    define:
+      eng: *eng
+      out: output.debug
+      fix: '""'
+
+  flutter_linux_gtk_release:
+    <<: *gtk
+    define:
+      eng: *eng
+      out: output.release
+      fix: '"-release"'
+
+  flutter_linux_gtk_profile:
+    <<: *gtk
+    define:
+      eng: *eng
+      out: output.profile
+      fix: '"-profile"'
+
+  flutter_patched_sdk: &sdk
+    source:
+      - $out/flutter_patched_sdk/platform_strong.dill
+      - $out/flutter_patched_sdk/vm_outline_strong.dill
+    output:
+      - $eng/common/flutter_patched_sdk$fix
+    define:
+      eng: *eng
+      out: *any
+      fix: '""'
+
+  flutter_patched_sdk_product:
+    <<: *sdk
+    define:
+      eng: *eng
+      out: output.release
+      fix: '"_product"'
+
+  executable:
+    source: |-
+      #!/$prefix/bin/sh
+      exec /$distro/bin/flutter "$@"
+    output:
+      - $prefix/bin/flutter
+    binary: true
+    mode: 0o755
+
+  profile:
+    source: export PATH=${PREFIX}/opt/flutter/bin:${PATH}
+    output: $prefix/etc/profile.d/flutter.sh
+    binary: true
+    mode: 0o755
+
+  stamps:
+    source: $version
+    output:
+      - $out/engine-dart-sdk.stamp
+      - $out/flutter_sdk.stamp
+      - $out/font-subset.stamp
+      - $out/linux-sdk.stamp
+    binary: true
+    define:
+      out: *cache
+    mode: 0o644

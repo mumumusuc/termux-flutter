@@ -1,0 +1,77 @@
+[flutter]
+tag = '3.29.2'
+repo = 'https://github.com/flutter/flutter'
+path = './flutter'
+
+[ndk]
+api = 26 # >=26
+# unset to use ANDROID_NDK from env
+# path = 'path/to/ndk'
+
+[build]
+arch = ['arm64'] # arm, arm64, x86, x86_64
+runtime = ['debug'] # debug, release, profile
+gclient = './.gclient'
+
+[sysroot]
+path = './sysroot'
+
+[sysroot.termux-main]
+repo = 'https://packages-cf.termux.dev/apt/termux-main/'
+dist = 'stable'
+pkgs = [
+  'at-spi2-core',
+  'brotli',
+  'dbus',
+  'fontconfig',
+  'freetype',
+  'fribidi',
+  'gdk-pixbuf',
+  'glib',
+  'harfbuzz',
+  'libcairo',
+  'libepoxy',
+  'libexpat',
+  'libffi',
+  'libglvnd',
+  'libgraphite',
+  'libjpeg-turbo',
+  'liblzma',
+  'libpixman',
+  'libpng',
+  'libtiff',
+  'libwayland',
+  'libx11',
+  'libxau',
+  'libxcb',
+  'libxcursor',
+  'libxdmcp',
+  'libxext',
+  'libxfixes',
+  'libxft',
+  'libxi',
+  'libxrandr',
+  'libxrender',
+  'libxtst',
+  'pango',
+  'pcre2',
+  'swiftshader',
+  'xorgproto',
+  'zlib',
+  'zstd',
+]
+
+[sysroot.termux-x11]
+repo = 'https://packages-cf.termux.dev/apt/termux-x11/'
+dist = 'x11'
+pkgs = [
+  'gtk3',
+  'libxcomposite',
+  'libxdamage',
+  'libxinerama',
+  'libxkbcommon',
+]
+
+[package]
+conf = './package.yaml'
+path = '.'

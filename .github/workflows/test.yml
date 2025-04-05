@@ -1,0 +1,33 @@
+name: test
+
+on:
+  workflow_dispatch:
+  watch:
+    types: started
+jobs:
+  Ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: install deps
+      run: sudo apt update && sudo apt install libfreetype-dev ninja-build -y
+
+    - name: setup depot-tools
+      uses: newkdev/setup-depot-tools@v1.0.1
+
+    - name: install python requirements
+      run: pip install -r requirements.txt
+
+    - name: SSH
+      uses: csexton/debugger-action@master
+
+    - name: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact
+        path: |
+          flutter/engine/src/out/*/zip_archives
+          **/*.deb
+        compression-level: 0

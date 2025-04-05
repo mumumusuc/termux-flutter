@@ -1,0 +1,201 @@
+diff --git a/engine/src/build/config/BUILDCONFIG.gn b/engine/src/build/config/BUILDCONFIG.gn
+index b74b2e2..8c7794e 100644
+--- a/engine/src/build/config/BUILDCONFIG.gn
++++ b/engine/src/build/config/BUILDCONFIG.gn
+@@ -167,6 +167,8 @@ declare_args() {
+   }
+ 
+   # DON'T ADD MORE FLAGS HERE. Read the comment above.
++  is_termux = false
++  is_termux_host = false
+ }
+ 
+ # =============================================================================
+@@ -343,13 +345,13 @@ if (is_msan && !is_linux) {
+ # duplication in each target below.
+ _native_compiler_configs = [
+   "//build/config:feature_flags",
+-  "//build/config/compiler:compiler",
++  "//build/config/termux:compiler",
+   "//build/config/compiler:cxx_version_default",
+   "//build/config/compiler:compiler_arm_fpu",
+   "//build/config/compiler:chromium_code",
+   "//build/config/compiler:default_include_dirs",
+   "//build/config/compiler:no_rtti",
+-  "//build/config/compiler:runtime_library",
++  "//build/config/termux:runtime_library",
+ ]
+ 
+ if (use_flutter_cxx) {
+@@ -377,7 +379,9 @@ if (is_posix) {
+   ]
+ }
+ 
+-if (is_linux) {
++if (is_termux) {
++  _native_compiler_configs += [ "//build/config/termux:sdk" ]
++} else if (is_linux) {
+   _native_compiler_configs += [ "//build/config/linux:sdk" ]
+ } else if (is_mac) {
+   _native_compiler_configs += [ "//build/config/mac:sdk" ]
+@@ -457,7 +461,7 @@ if (is_win) {
+     "//build/config/mac:mac_executable_flags",
+   ]
+ } else if (is_linux || is_android) {
+-  _executable_configs += [ "//build/config/gcc:executable_ldconfig" ]
++  _executable_configs += [ "//build/config/termux:executable_ldconfig" ]
+   if (is_android) {
+     _executable_configs += [ "//build/config/android:executable_config" ]
+   }
+@@ -521,7 +525,14 @@ import("//build/toolchain/custom/custom.gni")
+ # shlib_toolchain is a Fuchsia-specific symbol and not used by Flutter.
+ shlib_toolchain = false
+ 
+-if (custom_toolchain != "") {
++if (is_termux) {
++  if (is_termux_host) {
++    host_toolchain = "//build/toolchain/termux:termux"
++  } else {
++    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
++  }
++  set_default_toolchain("//build/toolchain/termux:termux")
++} else if (custom_toolchain != "") {
+   assert(custom_sysroot != "")
+   assert(custom_target_triple != "")
+   host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+diff --git a/engine/src/build/config/termux/BUILD.gn b/engine/src/build/config/termux/BUILD.gn
+new file mode 100644
+index 0000000..2d527d3
+--- /dev/null
++++ b/engine/src/build/config/termux/BUILD.gn
+@@ -0,0 +1,78 @@
++import("//build/config/sysroot.gni")
++
++config("compiler") {
++  if (is_termux && current_toolchain == default_toolchain) {
++    cflags = [
++      "-fno-strict-aliasing",
++      "-fstack-protector",
++      "--param=ssp-buffer-size=8",
++      "-fPIC",
++      "-pipe",
++      "-fcolor-diagnostics",
++      "-ffunction-sections",
++      "-funwind-tables",
++      "-fno-short-enums",
++      "-nostdinc++",
++      "--target=$custom_target_triple",
++    ]
++    cflags_cc = ["-fvisibility-inlines-hidden"]
++    cflags_objcc = ["-fvisibility-inlines-hidden"]
++    ldflags = [
++      "-Wl,--fatal-warnings",
++      "-fPIC",
++      "-Wl,-z,noexecstack",
++      "-Wl,-z,now",
++      "-Wl,-z,relro",
++      "-Wl,-z,defs",
++      "-Wl,--undefined-version",
++      "-Wl,--no-undefined",
++      "-Wl,--exclude-libs,ALL",
++      "-Wl,--icf=all",
++      "-Wl,-z,max-page-size=65536",
++      "--target=$custom_target_triple",
++      "-L$target_sysroot/usr/lib",
++    ]
++    defines = ["__TERMUX__", "HAVE_SYS_UIO_H"]
++    asmflags = cflags
++  } else {
++    configs = ["//build/config/compiler:compiler"]
++  }
++}
++
++config("runtime_library") {
++  if (is_termux && current_toolchain == default_toolchain) {
++    cflags_cc = ["-nostdinc++"]
++    defines = ["__compiler_offsetof=__builtin_offsetof", "nan=__builtin_nan"]
++    ldflags = ["-stdlib=libstdc++", "-Wl,--warn-shared-textrel"]
++    lib_dirs = [ "$custom_toolchain/lib/clang/19/lib/linux/" ]
++    include_dirs = [
++      "//flutter/third_party/libcxx/include",
++      "//flutter/third_party/libcxxabi/include",
++    ]
++  } else {
++    configs = ["//build/config/compiler:runtime_library"]
++  }
++}
++
++config("executable_ldconfig") {
++  if (is_termux && current_toolchain == default_toolchain) {
++    ldflags = [
++      "-Bdynamic",
++      "-Wl,-z,nocopyreloc",
++    ]
++  } else {
++    configs = ["//build/config/gcc:executable_ldconfig"]
++  }
++}
++
++config("sdk") {
++  cflags = []
++  ldflags = []
++  if (defined(custom_sysroot) && custom_sysroot != "") {
++    cflags += [ "--sysroot=" + custom_sysroot ]
++    ldflags += [ "--sysroot=" + custom_sysroot ]
++  }
++  if (defined(target_sysroot) && target_sysroot != "") {
++    cflags += [ "-idirafter$target_sysroot/usr/include" ]
++  }
++}
+diff --git a/engine/src/build/toolchain/termux/BUILD.gn b/engine/src/build/toolchain/termux/BUILD.gn
+new file mode 100644
+index 0000000..f272c68
+--- /dev/null
++++ b/engine/src/build/toolchain/termux/BUILD.gn
+@@ -0,0 +1,31 @@
++import("//build/toolchain/gcc_toolchain.gni")
++
++template("termux_toolchain") {
++  gcc_toolchain(target_name) {
++    extra_toolchain_args = {
++      if (defined(invoker.extra_toolchain_args)) {
++        forward_variables_from(invoker.extra_toolchain_args, "*")
++      }
++    }
++
++    is_clang = true
++    toolchain_os = invoker.toolchain_os
++    toolchain_cpu = "${target_cpu}"
++
++    ldflag = invoker.ldflag
++    prefix = "$custom_toolchain/bin"
++    cc = prefix + "/clang"
++    cxx = prefix + "/clang++"
++    asm = prefix + "/clang"
++    ar = prefix + "/llvm-ar"
++    ld = prefix + "/clang++ $ldflag"
++    readelf = prefix + "/llvm-readelf"
++    nm = prefix + "/llvm-nm"
++    strip = prefix + "/llvm-strip"
++  }
++}
++
++termux_toolchain("termux"){
++  toolchain_os = "linux"
++  ldflag = "-Wl,-rpath=/data/data/com.termux/files/usr/lib"
++}
+diff --git a/engine/src/flutter/shell/testing/BUILD.gn b/engine/src/flutter/shell/testing/BUILD.gn
+index 28a19c7..5c3992b 100644
+--- a/engine/src/flutter/shell/testing/BUILD.gn
++++ b/engine/src/flutter/shell/testing/BUILD.gn
+@@ -56,6 +56,10 @@ executable("testing") {
+       "//flutter/impeller",
+       "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static",
+     ]
++    if (is_termux) {
++      libs += [ "vk_swiftshader" ]
++      deps -= [ "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static" ]
++    }
+   }
+ 
+   metadata = {
