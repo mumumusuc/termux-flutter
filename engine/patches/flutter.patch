@@ -1,45 +1,15 @@
-diff --git a/display_list/testing/BUILD.gn b/display_list/testing/BUILD.gn
-index f94799b972..8d4f3d9da2 100644
---- a/display_list/testing/BUILD.gn
-+++ b/display_list/testing/BUILD.gn
-@@ -30,7 +30,7 @@ surface_provider_include_software = !is_android && !is_ios
- # But, since benchmarks do not run on Windows and rendertests only
- # runs on SW by default, this restriction currently only limits the
- # ability to manually cross-check OpenGL on Windows for rendertests
--surface_provider_include_gl = !is_fuchsia && !is_ios && !is_win && !is_mac
-+surface_provider_include_gl = !is_linux && !is_fuchsia && !is_ios && !is_win && !is_mac
- 
- # TODO (https://github.com/flutter/flutter/issues/107357):
- # impeller_enable_vulkan currently requires skia to not use VMA, which in turn
-diff --git a/shell/common/BUILD.gn b/shell/common/BUILD.gn
-index 8e2d9f2174..14e6633669 100644
---- a/shell/common/BUILD.gn
-+++ b/shell/common/BUILD.gn
-@@ -352,14 +352,12 @@ if (enable_unittests) {
-       # TODO(63837): This test is hard-coded to use a TestGLSurface so it cannot
-       # run on fuchsia or when GL is not enabled.
-       sources += [ "shell_io_manager_unittests.cc" ]
--      deps += [ "//flutter/third_party/swiftshader" ]
-     }
- 
-     if (shell_enable_gl) {
-       deps += [
-         "//flutter/third_party/angle:libEGL_static",
-         "//flutter/third_party/angle:libGLESv2_static",
--        "//flutter/third_party/swiftshader",
-       ]
-     }
-   }
 diff --git a/shell/testing/BUILD.gn b/shell/testing/BUILD.gn
-index 28a19c75d1..e1ac878c3b 100644
+index 28a19c75d1..e7c7a69a1c 100644
 --- a/shell/testing/BUILD.gn
 +++ b/shell/testing/BUILD.gn
-@@ -54,7 +54,7 @@ executable("testing") {
-     deps += [
-       ":tester_gpu_configuration",
+@@ -56,6 +56,10 @@ executable("testing") {
        "//flutter/impeller",
--      "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static",
-+#      "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static",
+       "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static",
      ]
++    if (is_termux) {
++      libs += [ "vulkan" ]
++      deps -= [ "//flutter/third_party/swiftshader/src/Vulkan:swiftshader_libvulkan_static" ]
++    }
    }
  
+   metadata = {
