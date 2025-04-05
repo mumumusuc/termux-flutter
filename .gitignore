@@ -1,12 +1,3 @@
-engine/src
-engine/release
-engine/metrics.cfg
-engine/.cipd_client
-engine/.cipd_client_cache
-engine/.versions
-engine/_bad_scm
-engine/token
 flutter
+token
 **/__pycache__
-.cipd
-.gclient_*
