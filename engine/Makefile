@@ -33,28 +33,26 @@ override CONFIGURE += 						\
 	--target-os linux 						\
 	--linux-cpu arm64 						\
 	--embedder-for-target 					\
-	--enable-fontconfig 					\
+	--enable-fontconfig             \
 	--target-triple aarch64-linux-android 	\
 	--clang --no-goma --no-backtrace 		\
 	--no-enable-unittests 					\
-	--no-prebuilt-dart-sdk 					\
 	--no-build-embedder-examples 			\
 	--target-toolchain $$PREFIX 			\
 	--target-sysroot $$PREFIX/.. 			\
-	--enable-impeller-3d --no-lto 			\
 	--runtime-mode $(RUNTIME)
 
 override GN_ARGS += 							\
-	toolchain_prefix="aarch64-linux-android-" 	\
 	use_default_linux_sysroot=false				\
 	is_desktop_linux=false 						\
 	test_enable_vulkan=false 					\
 	skia_use_vulkan=false 						\
 	shell_enable_vulkan=false 					\
+	test_enable_gl=false 						\
+	test_enable_software=false 					\
 	embedder_enable_vulkan=false 				\
 	impeller_enable_vulkan=false 				\
-	impeller_enable_vulkan_playgrounds=false 	\
-	dart_platform_sdk=false
+	impeller_enable_vulkan_playgrounds=false
 
 OUTPUT  = $(ROOT)src/out/linux_$(RUNTIME)_arm64
 CONFIG  = $(OUTPUT)/build.ninja

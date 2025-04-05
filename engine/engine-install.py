@@ -19,13 +19,13 @@ def parse_args(args):
         required=True)
     parser.add_argument(
         '-d', '--debug',
-        help='path to linux_debug_arm64')
+        help='path to linux_debug_[arch]')
     parser.add_argument(
         '-p', '--profile',
-        help='parh to linux_profile_arm64')
+        help='parh to linux_profile_[arch]')
     parser.add_argument(
         '-r', '--release',
-        help='path to linux_release_arm64')
+        help='path to linux_release_[arch]')
 
     return parser.parse_args(args)
 
@@ -67,7 +67,7 @@ def linux_gtk(): return [
 
 
 @install
-def linux_common(): return [
+def common(): return [
     'flutter_patched_sdk/platform_strong.dill',
     'flutter_patched_sdk/vm_outline_strong.dill']
 
@@ -103,8 +103,8 @@ def main(argv):
         linux_gtk(tar, debug, 'linux-arm64')
         linux_gtk(tar, profile, 'linux-arm64-profile')
         linux_gtk(tar, release, 'linux-arm64-release')
-        linux_common(tar, debug or profile, 'common/flutter_patched_sdk')
-        linux_common(tar, release, 'common/flutter_patched_sdk_product')
+        common(tar, debug or profile, 'common/flutter_patched_sdk')
+        common(tar, release, 'common/flutter_patched_sdk_product')
     return 0
 
 

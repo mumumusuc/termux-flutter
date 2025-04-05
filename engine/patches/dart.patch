@@ -1,26 +1,13 @@
-diff --git a/runtime/bin/BUILD.gn b/runtime/bin/BUILD.gn
-index eac51ec0247..4eaaae8726b 100644
---- a/runtime/bin/BUILD.gn
-+++ b/runtime/bin/BUILD.gn
-@@ -27,7 +27,7 @@ config("libdart_builtin_config") {
-   } else {
-     libs = [ "dl" ]
-   }
--  if (is_android) {
-+  if (is_android || is_linux) {
-     libs += [
-       "android",
-       "log",
 diff --git a/runtime/platform/globals.h b/runtime/platform/globals.h
-index 40d8ac3d1cf..1e19ddbac37 100644
+index 29bbb969..ea5a09ee 100644
 --- a/runtime/platform/globals.h
 +++ b/runtime/platform/globals.h
-@@ -737,7 +737,7 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
- #endif
+@@ -104,7 +104,7 @@
+ // for more information on predefined macros:
+ //   - http://msdn.microsoft.com/en-us/library/b0084kay.aspx
+ //   - with gcc, run: "echo | gcc -E -dM -"
+-#if defined(__ANDROID__)
++#if defined(__ANDROID__) && !defined(__TERMUX__)
  
- #if defined(DART_HOST_OS_ANDROID)
--#define kHostOperatingSystemName "android"
-+#define kHostOperatingSystemName "linux"
- #elif defined(DART_HOST_OS_FUCHSIA)
- #define kHostOperatingSystemName "fuchsia"
- #elif defined(DART_HOST_OS_IOS)
+ // Check for Android first, to determine its difference from Linux.
+ #define DART_HOST_OS_ANDROID 1
