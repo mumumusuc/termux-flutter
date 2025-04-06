@@ -61,6 +61,8 @@ def engine_version(root: str):
 def recordm(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        if os.environ.get('NO_RECORD'):
+            return func(*args, **kwargs)
         if args and inspect.isclass(type(args[0])):
             class_name = args[0].__class__.__name__
             logged_args = args[1:]

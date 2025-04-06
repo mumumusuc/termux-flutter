@@ -39,8 +39,10 @@ class Build:
         mode = cfg['build'].get('runtime')
         gclient = cfg['build'].get('gclient')
         sysroot = cfg['sysroot']
+        syspath = sysroot.pop('path')
         package = cfg['package'].get('conf')
         release = cfg['package'].get('path')
+        patches = cfg.get('patch')
 
         if not ndk:
             raise ValueError('neither ndk path nor ANDROID_NDK is set')
@@ -56,7 +58,7 @@ class Build:
         self.repo = repo or 'https://github.com/flutter/flutter'
         self.arch = arch or 'arm64'
         self.mode = mode or 'debug'
-        self.sysroot = Sysroot(**sysroot)
+        self.sysroot = Sysroot(path=path/syspath, **sysroot)
         self.root = path/root
         self.gclient = path/gclient
         self.release = path/release
@@ -67,6 +69,18 @@ class Build:
 
         with open(path/package, 'rb') as f:
             self.package = yaml.safe_load(f)
+
+        if isinstance(patches, dict):
+            self.patches = {}
+
+            def patch(key):
+                return lambda: self.patch(**self.patches[key])
+
+            for k, v in patches.items():
+                self.patches[k] = {
+                    'file': path/v['file'],
+                    'path': self.root/v['path']}
+                self.__dict__[f'patch_{k}'] = patch(k)
 
     def config(self):
         info = (f'{k}\t: {v}' for k, v in self.__dict__.items() if k != 'package')
@@ -103,6 +117,10 @@ class Build:
         cmd = ['gclient', 'sync', '-DR', '--no-history']
         subprocess.run(cmd, cwd=src, check=True, stdout=True, stderr=True)
 
+    def patch(self, *, file, path):
+        repo = git.Repo(path)
+        repo.git.apply([file])
+
     def configure(
         self,
         arch: str,
@@ -120,7 +138,6 @@ class Build:
             'engine/src/flutter/tools/gn',
             '--linux',
             '--linux-cpu', arch,
-            '--full-dart-sdk',
             '--enable-fontconfig',
             '--target-triple', utils.target_triple(arch, api),
             '--no-goma',
@@ -133,6 +150,7 @@ class Build:
             '--target-toolchain', toolchain,
             '--target-sysroot', sysroot,
             '--runtime-mode', mode,
+            '--gn-args', 'dart_platform_sdk=false',
             '--gn-args', 'is_desktop_linux=false',
             '--gn-args', 'use_default_linux_sysroot=false',
             '--gn-args', 'dart_support_perfetto=false',
@@ -147,11 +165,13 @@ class Build:
         root = root or self.root
         cmd = [
             'ninja', '-C', utils.target_output(root, arch, mode),
-            'flutter/build/archives:artifacts',
-            'flutter/build/archives:dart_sdk_archive',
-            'flutter/build/archives:flutter_patched_sdk',
-            'flutter/shell/platform/linux:flutter_gtk',
-            'flutter/tools/font_subset',
+            'flutter',
+            # disable zip_archives
+            # 'flutter/build/archives:artifacts',
+            # 'flutter/build/archives:dart_sdk_archive',
+            # 'flutter/build/archives:flutter_patched_sdk',
+            # 'flutter/shell/platform/linux:flutter_gtk',
+            # 'flutter/tools/font_subset',
         ]
         if jobs:
             cmd.append(f'-j{jobs}')

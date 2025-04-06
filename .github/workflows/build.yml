@@ -23,11 +23,18 @@ jobs:
     - name: build
       run: python build.py
 
-    - name: upload
-      uses: actions/upload-artifact@v4
+    - name: parse tag
+      id: parser
+      run: |
+        TAG=$(NO_RECORD=1 python build.py tag)
+        echo "TAG=$TAG" >> $GITHUB_OUTPUT
+        echo "TITLE=Flutter $TAG" >> $GITHUB_OUTPUT
+
+    - name: release
+      uses: softprops/action-gh-release@v1
       with:
-        name: artifact
-        path: |
-          flutter/engine/src/out/*/zip_archives
-          **/*.deb
-        compression-level: 0
+        tag_name: ${{ steps.parser.outputs.TAG }}
+        name: ${{ steps.parse_toml.outputs.TITLE }}
+        files: '**/*.deb'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

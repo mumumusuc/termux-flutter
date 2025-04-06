@@ -13,6 +13,18 @@ arch = ['arm64'] # arm, arm64, x86, x86_64
 runtime = ['debug'] # debug, release, profile
 gclient = './.gclient'
 
+[patch.engine]
+file = './patches/engine.patch'
+path = '.'
+
+[patch.dart]
+file = './patches/dart.patch'
+path = 'engine/src/flutter/third_party/dart'
+
+[patch.skia]
+file = './patches/skia.patch'
+path = 'engine/src/flutter/third_party/skia'
+
 [sysroot]
 path = './sysroot'
 
