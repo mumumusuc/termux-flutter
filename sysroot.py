@@ -119,9 +119,9 @@ class Sysroot:
 
         for k, v in kwargs.items():
             if isinstance(v, dict):
-                self.include(k, **v)
+                self.__include__(k, **v)
 
-    def include(self, name, repo, dist, pkgs):
+    def __include__(self, name, repo, dist, pkgs):
         assert name and repo and dist and pkgs
 
         self.data[name] = {'repo': repo, 'dist': dist, 'pkgs': pkgs}

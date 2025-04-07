@@ -3,7 +3,11 @@
 import io
 import utils
 import string
+import base64
+import requests
 import tarfile
+import zipfile
+import hashlib
 import tempfile
 import subprocess
 from git import Repo
@@ -137,6 +141,37 @@ def tar(path, data):
                 raise FileNotFoundError(src)
 
 
+def base64_md5_file(path):
+    md5 = hashlib.md5()
+    with open(path, 'rb') as f:
+        while s := f.read(8192):
+            md5.update(s)
+    return base64.b64encode(md5.digest()).decode('utf8')
+
+
+def download(url, out):
+    assert url, out
+
+    with requests.get(url, allow_redirects=True, stream=True) as resp:
+        if resp.status_code != 200:
+            return None
+        if hash := resp.headers.get('x-goog-hash'):
+            hash = dict([it.strip().split('=', 1) for it in hash.split(',')])
+        if (dst := Path(out)) and dst.is_dir():
+            dst = dst/url.split('?')[0].split('/')[-1]
+        if dst.is_file() and (md5 := base64_md5_file(dst)):
+            if md5 == hash.get('md5'):
+                return dst
+        resp = requests.get(url)
+        # TODO: check md5
+        with open(dst, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+                f.write(chunk)
+        return dst
+
+
 class Output(object):
     def __init__(self, root, arch):
         self.any = None
@@ -192,7 +227,7 @@ class Package(object):
             for it in self.resource.keys():
                 yield from self.gen_resource_internal(it)
         else:
-            raise ValueError(f'bad name format: "{name}"')
+            raise ValueError(f'bad name: "{name}"')
 
     def gen_resource_internal(self, name=None):
         if not (data := self.resource.get(name)):
@@ -235,6 +270,39 @@ class Package(object):
         for out in out:
             for it in emit(out, src, git):
                 yield it | ext
+
+    def test_resource(self, name=None):
+        if isinstance(name, str):
+            yield self.test_resource_internal(name)
+        elif isinstance(name, list):
+            for it in name:
+                yield self.test_resource_internal(it)
+        elif not name:
+            for it in self.resource.keys():
+                yield self.test_resource_internal(it)
+        else:
+            raise ValueError(f'bad name: "{name}"')
+
+    def test_resource_internal(self, name):
+        if not (data := self.resource.get(name)):
+            raise ValueError(f'unknown resource name: "{name}"')
+
+        if not (test := data.get('test', {})):
+            return None
+        deps = data.get('define', {}).items()
+        deps = {k: eval(v, self.globals, self.defines) for k, v in deps}
+        file = self.__format__(test['file'], **deps)
+        path = self.__format__(test['path'], **deps)
+        if not (dest := download(file, Path('~/storage/downloads/1DMP/General').expanduser())):
+            logger.warning(f'test file not found: "{file}"')
+
+        data = {it['out'] for it in self.gen_resource(name)}
+        with zipfile.ZipFile(dest) as f:
+            for it in f.namelist():
+                if not it.endswith('.md') and Path(path, it) not in data:
+                    logger.error(f'missing file: {path}/{it}')
+                    return False
+        return True
 
     def debuild(self, output, section=None):
         output = Path(output or '.').expanduser().resolve()

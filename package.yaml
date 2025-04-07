@@ -5,6 +5,7 @@
 define:
   prefix: '"data/data/com.termux/files/usr"'
   distro: '"data/data/com.termux/files/usr/opt/flutter"'
+  remote: f'https://storage.googleapis.com/flutter_infra_release/flutter/{version}'
 
 control:
   Package: flutter
@@ -25,12 +26,18 @@ resource:
   flutter_gpu:
     source: $root/engine/src/flutter/lib/gpu
     output: $distro/bin/cache/pkg/flutter_gpu
+    test:
+      file: $remote/flutter_gpu.zip
+      path: $distro/bin/cache/pkg
 
   sky_engine:
     source: $any/gen/dart-pkg/sky_engine
     output: $distro/bin/cache/pkg/sky_engine
     define:
       any: &any output.any
+    test:
+      file: $remote/sky_engine.zip
+      path: $distro/bin/cache/pkg
 
   dart_sdk:
     source: $any/dart-sdk
@@ -38,6 +45,9 @@ resource:
     define:
       any: *any
       out: &cache f'{distro}/bin/cache'
+    test:
+      file: $remote/dart-sdk-linux-$arch.zip
+      path: $distro/bin/cache
   
   artifacts:
     source: 
@@ -58,6 +68,9 @@ resource:
     define:
       any: *any
       eng: &eng f'{distro}/bin/cache/artifacts/engine'
+    test:
+      file: $remote/linux-$arch/artifacts.zip
+      path: $eng
 
   flutter_linux_gtk: &gtk
     source:
@@ -70,6 +83,9 @@ resource:
       eng: *eng
       out: output.debug
       fix: '""'
+    test:
+      file: $remote/linux-$arch-debug/linux-$arch-flutter-gtk.zip
+      path: $eng
 
   flutter_linux_gtk_release:
     <<: *gtk
@@ -77,6 +93,9 @@ resource:
       eng: *eng
       out: output.release
       fix: '"-release"'
+    test:
+      file: $remote/linux-$arch-release/linux-$arch-flutter-gtk.zip
+      path: $eng
 
   flutter_linux_gtk_profile:
     <<: *gtk
@@ -84,6 +103,9 @@ resource:
       eng: *eng
       out: output.profile
       fix: '"-profile"'
+    test:
+      file: $remote/linux-$arch-profile/linux-$arch-flutter-gtk.zip
+      path: $eng
 
   flutter_patched_sdk: &sdk
     source:
@@ -95,6 +117,9 @@ resource:
       eng: *eng
       out: *any
       fix: '""'
+    test:
+      file: $remote/flutter_patched_sdk.zip
+      path: &com $eng/common
 
   flutter_patched_sdk_product:
     <<: *sdk
@@ -102,6 +127,9 @@ resource:
       eng: *eng
       out: output.release
       fix: '"_product"'
+    test:
+      file: $remote/flutter_patched_sdk_product.zip
+      path: *com
 
   executable:
     source: |-
