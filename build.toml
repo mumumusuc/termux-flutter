@@ -9,7 +9,7 @@ api = 26 # >=26
 # path = 'path/to/ndk'
 
 [build]
-arch = ['arm64'] # arm, arm64, x86, x86_64
+arch = ['arm64'] # arm, arm64, x86, x64
 runtime = ['debug'] # debug, release, profile
 gclient = './.gclient'
 

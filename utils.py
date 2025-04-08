@@ -6,7 +6,7 @@ from loguru import logger
 from functools import wraps
 
 __MARK__ = '/data/data/com.termux/files/usr'
-__ARCH__ = dict(arm='arm', arm64='aarch64', x86_64='x86_64', x86='i686')
+__ARCH__ = dict(arm='arm', arm64='aarch64', x64='x86_64', x86='i686')
 __MODE__ = ('release', 'debug', 'profile')
 
 
