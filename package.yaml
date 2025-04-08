@@ -13,7 +13,7 @@ control:
   Architecture: $architecture
   Maintainer: mumumusuc <mumumusuc@gmail.com>
   Pre-Depends: x11-repo
-  Depends: which, gtk3, xorgproto, ninja, cmake, clang, pkg-config
+  Depends: git, which, gtk3, xorgproto, ninja, cmake, clang, pkg-config
   Homepage: https://www.github.com/flutter/flutter
   Description: Flutter makes it easy and fast to build beautiful apps for mobile and beyond
 
