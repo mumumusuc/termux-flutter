@@ -5,13 +5,13 @@ import inspect
 from loguru import logger
 from functools import wraps
 
-__MARK__ = '/data/data/com.termux/files/usr'
 __ARCH__ = dict(arm='arm', arm64='aarch64', x64='x86_64', x86='i686')
 __MODE__ = ('release', 'debug', 'profile')
 
-
-def is_termux():
-    return os.environ.get('PREFIX') == __MARK__
+if os.environ.get('PREFIX') == '/data/data/com.termux/files/usr':
+    __TERMUX__ = 'true'
+else:
+    __TERMUX__ = 'false'
 
 
 def termux_arch(arch: str):
@@ -21,18 +21,6 @@ def termux_arch(arch: str):
         return arch
 
     raise ValueError(f'unknown arch: "{arch}"')
-
-
-def target_triple(arch: str, api: int):
-    if arch in __ARCH__:
-        prefix = __ARCH__[arch]
-    elif arch in __ARCH__.values():
-        prefix = arch
-    else:
-        raise ValueError(f'unknown arch: "{arch}"')
-    suffix = f'eabi{api}' if arch == 'arm' else api
-
-    return f'{prefix}-linux-android{suffix}'
 
 
 def target_output(root: str, arch: str, mode: str):

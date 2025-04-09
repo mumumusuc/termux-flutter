@@ -139,7 +139,6 @@ class Build:
             '--linux',
             '--linux-cpu', arch,
             '--enable-fontconfig',
-            '--target-triple', utils.target_triple(arch, api),
             '--no-goma',
             '--no-backtrace',
             '--clang',
@@ -150,14 +149,15 @@ class Build:
             '--target-toolchain', toolchain,
             '--target-sysroot', sysroot,
             '--runtime-mode', mode,
+            '--gn-args', 'dart_include_wasm_opt=false',
             '--gn-args', 'dart_platform_sdk=false',
             '--gn-args', 'is_desktop_linux=false',
             '--gn-args', 'use_default_linux_sysroot=false',
             '--gn-args', 'dart_support_perfetto=false',
-            '--gn-args', 'skia_support_perfetto=false',
             '--gn-args', 'custom_sysroot=""',
             '--gn-args', 'is_termux=true',
-            '--gn-args', 'is_termux_host='+str(utils.is_termux()).lower(),
+            '--gn-args', f'is_termux_host={utils.__TERMUX__}',
+            '--gn-args', f'termux_api_level={api}',
         ]
         subprocess.run(cmd, cwd=root, check=True, stdout=True, stderr=True)
 

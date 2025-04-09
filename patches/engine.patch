@@ -1,17 +1,8 @@
 diff --git a/engine/src/build/config/BUILDCONFIG.gn b/engine/src/build/config/BUILDCONFIG.gn
-index b74b2e2..8c7794e 100644
+index b74b2e2..6cc7772 100644
 --- a/engine/src/build/config/BUILDCONFIG.gn
 +++ b/engine/src/build/config/BUILDCONFIG.gn
-@@ -167,6 +167,8 @@ declare_args() {
-   }
- 
-   # DON'T ADD MORE FLAGS HERE. Read the comment above.
-+  is_termux = false
-+  is_termux_host = false
- }
- 
- # =============================================================================
-@@ -343,13 +345,13 @@ if (is_msan && !is_linux) {
+@@ -343,13 +343,13 @@ if (is_msan && !is_linux) {
  # duplication in each target below.
  _native_compiler_configs = [
    "//build/config:feature_flags",
@@ -27,11 +18,13 @@ index b74b2e2..8c7794e 100644
  ]
  
  if (use_flutter_cxx) {
-@@ -377,7 +379,9 @@ if (is_posix) {
+@@ -377,7 +377,11 @@ if (is_posix) {
    ]
  }
  
 -if (is_linux) {
++import("//build/config/termux/termux.gni")
++
 +if (is_termux) {
 +  _native_compiler_configs += [ "//build/config/termux:sdk" ]
 +} else if (is_linux) {
@@ -54,25 +47,27 @@ index b74b2e2..8c7794e 100644
 -if (custom_toolchain != "") {
 +if (is_termux) {
 +  if (is_termux_host) {
-+    host_toolchain = "//build/toolchain/termux:termux"
++    host_toolchain = "//build/toolchain/termux:$host_cpu"
 +  } else {
 +    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
 +  }
-+  set_default_toolchain("//build/toolchain/termux:termux")
++  set_default_toolchain("//build/toolchain/termux:$current_cpu")
 +} else if (custom_toolchain != "") {
    assert(custom_sysroot != "")
    assert(custom_target_triple != "")
    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
 diff --git a/engine/src/build/config/termux/BUILD.gn b/engine/src/build/config/termux/BUILD.gn
 new file mode 100644
-index 0000000..2d527d3
+index 0000000..4dd7237
 --- /dev/null
 +++ b/engine/src/build/config/termux/BUILD.gn
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,172 @@
++import("//build/config/termux/termux.gni")
 +import("//build/config/sysroot.gni")
++import("//build/config/profiler.gni")
 +
 +config("compiler") {
-+  if (is_termux && current_toolchain == default_toolchain) {
++  if (is_termux_toolchain || current_toolchain == default_toolchain) {
 +    cflags = [
 +      "-fno-strict-aliasing",
 +      "-fstack-protector",
@@ -84,7 +79,6 @@ index 0000000..2d527d3
 +      "-funwind-tables",
 +      "-fno-short-enums",
 +      "-nostdinc++",
-+      "--target=$custom_target_triple",
 +    ]
 +    cflags_cc = ["-fvisibility-inlines-hidden"]
 +    cflags_objcc = ["-fvisibility-inlines-hidden"]
@@ -94,16 +88,102 @@ index 0000000..2d527d3
 +      "-Wl,-z,noexecstack",
 +      "-Wl,-z,now",
 +      "-Wl,-z,relro",
-+      "-Wl,-z,defs",
 +      "-Wl,--undefined-version",
 +      "-Wl,--no-undefined",
 +      "-Wl,--exclude-libs,ALL",
 +      "-Wl,--icf=all",
 +      "-Wl,-z,max-page-size=65536",
-+      "--target=$custom_target_triple",
 +      "-L$target_sysroot/usr/lib",
 +    ]
-+    defines = ["__TERMUX__", "HAVE_SYS_UIO_H"]
++    defines = [
++      "__TERMUX__",
++      "HAVE_SYS_UIO_H"
++    ]
++    if (!using_sanitizer) {
++      ldflags += [ "-Wl,-z,defs" ]
++    }
++    if (enable_profiling && !is_debug) {
++      defines += [ "ENABLE_PROFILING" ]
++      cflags += [
++        "-fno-omit-frame-pointer",
++        "-mno-omit-leaf-frame-pointer",
++        "-g",
++      ]
++
++      if (enable_full_stack_frames_for_profiling) {
++        cflags += [
++          "-fno-inline",
++          "-fno-optimize-sibling-calls",
++        ]
++      }
++      ldflags += [ "-rdynamic" ]
++    }
++    if (using_sanitizer) {
++      cflags += [
++        "-fno-omit-frame-pointer",
++        "-gline-tables-only",
++      ]
++    }
++    if (is_asan) {
++      cflags += [ "-fsanitize=address" ]
++      ldflags += [ "-fsanitize=address" ]
++    }
++    if (is_lsan) {
++      cflags += [ "-fsanitize=leak" ]
++      ldflags += [ "-fsanitize=leak" ]
++    }
++    if (is_tsan) {
++      cflags += [ "-fsanitize=thread" ]
++      ldflags += [ "-fsanitize=thread" ]
++    }
++    if (is_msan) {
++      cflags += [ "-fsanitize=memory" ]
++      ldflags += [ "-fsanitize=memory" ]
++    }
++    if (is_ubsan) {
++      cflags += [ "-fsanitize=undefined" ]
++      ldflags += [ "-fsanitize=undefined" ]
++    }
++    if (current_cpu == "x64") {
++      cflags += [
++        "-m64",
++        "-march=x86-64",
++      ]
++      ldflags += [ "-m64" ]
++    } else if (current_cpu == "x86") {
++      cflags += [ "-m32" ]
++      ldflags += [ "-m32" ]
++      if (is_clang) {
++        cflags += [
++          "-mstack-alignment=16",
++          "-mstackrealign",
++        ]
++      }
++    } else if (current_cpu == "arm") {
++      cflags += [
++        "-march=$arm_arch",
++        "-mfloat-abi=$arm_float_abi",
++      ]
++      if (arm_tune != "") {
++        cflags += [ "-mtune=$arm_tune" ]
++      }
++      if (arm_use_thumb) {
++        cflags += [ "-mthumb" ]
++      }
++    }
++    if (current_cpu == "arm") {
++      cflags += [ "--target=arm-linux-androideabi${termux_api_level}" ]
++      ldflags += [ "--target=arm-linux-androideabi${termux_api_level}" ]
++    } else if (current_cpu == "arm64") {
++      cflags += [ "--target=aarch64-linux-android${termux_api_level}" ]
++      ldflags += [ "--target=aarch64-linux-android${termux_api_level}" ]
++    } else if (current_cpu == "x86") {
++      cflags += [ "--target=i686-linux-androideabi${termux_api_level}" ]
++      ldflags += [ "--target=i686-linux-androideabi${termux_api_level}" ]
++    } else if (current_cpu == "x64") {
++      cflags += [ "--target=x86_64-linux-androideabi${termux_api_level}" ]
++      ldflags += [ "--target=x86_64-linux-androideabi${termux_api_level}" ]
++    }
 +    asmflags = cflags
 +  } else {
 +    configs = ["//build/config/compiler:compiler"]
@@ -111,10 +191,17 @@ index 0000000..2d527d3
 +}
 +
 +config("runtime_library") {
-+  if (is_termux && current_toolchain == default_toolchain) {
++  if (is_termux_toolchain || current_toolchain == default_toolchain) {
 +    cflags_cc = ["-nostdinc++"]
-+    defines = ["__compiler_offsetof=__builtin_offsetof", "nan=__builtin_nan"]
-+    ldflags = ["-stdlib=libstdc++", "-Wl,--warn-shared-textrel"]
++    cflags_objcc = [ "-nostdinc++" ]
++    defines = [
++      "__compiler_offsetof=__builtin_offsetof",
++      "nan=__builtin_nan"
++    ]
++    ldflags = [
++      "-stdlib=libstdc++",
++      "-Wl,--warn-shared-textrel"
++    ]
 +    lib_dirs = [ "$custom_toolchain/lib/clang/19/lib/linux/" ]
 +    include_dirs = [
 +      "//flutter/third_party/libcxx/include",
@@ -126,7 +213,7 @@ index 0000000..2d527d3
 +}
 +
 +config("executable_ldconfig") {
-+  if (is_termux && current_toolchain == default_toolchain) {
++  if (is_termux_toolchain || current_toolchain == default_toolchain) {
 +    ldflags = [
 +      "-Bdynamic",
 +      "-Wl,-z,nocopyreloc",
@@ -147,27 +234,38 @@ index 0000000..2d527d3
 +    cflags += [ "-idirafter$target_sysroot/usr/include" ]
 +  }
 +}
+diff --git a/engine/src/build/config/termux/termux.gni b/engine/src/build/config/termux/termux.gni
+new file mode 100644
+index 0000000..5fe568a
+--- /dev/null
++++ b/engine/src/build/config/termux/termux.gni
+@@ -0,0 +1,7 @@
++declare_args() {
++  termux_api_level = 26
++
++  is_termux = false
++  is_termux_host = false
++  is_termux_toolchain = false
++}
 diff --git a/engine/src/build/toolchain/termux/BUILD.gn b/engine/src/build/toolchain/termux/BUILD.gn
 new file mode 100644
-index 0000000..f272c68
+index 0000000..4e488aa
 --- /dev/null
 +++ b/engine/src/build/toolchain/termux/BUILD.gn
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,44 @@
 +import("//build/toolchain/gcc_toolchain.gni")
 +
 +template("termux_toolchain") {
 +  gcc_toolchain(target_name) {
 +    extra_toolchain_args = {
-+      if (defined(invoker.extra_toolchain_args)) {
-+        forward_variables_from(invoker.extra_toolchain_args, "*")
-+      }
++      is_termux_toolchain = true
 +    }
 +
 +    is_clang = true
 +    toolchain_os = invoker.toolchain_os
-+    toolchain_cpu = "${target_cpu}"
++    toolchain_cpu = invoker.toolchain_cpu
 +
-+    ldflag = invoker.ldflag
++    ldflag = "-Wl,-rpath=/data/data/com.termux/files/usr/lib"
 +    prefix = "$custom_toolchain/bin"
 +    cc = prefix + "/clang"
 +    cxx = prefix + "/clang++"
@@ -180,9 +278,24 @@ index 0000000..f272c68
 +  }
 +}
 +
-+termux_toolchain("termux"){
++termux_toolchain("arm64"){
 +  toolchain_os = "linux"
-+  ldflag = "-Wl,-rpath=/data/data/com.termux/files/usr/lib"
++  toolchain_cpu = "arm64"
++}
++
++termux_toolchain("arm"){
++  toolchain_os = "linux"
++  toolchain_cpu = "arm"
++}
++
++termux_toolchain("x64"){
++  toolchain_os = "linux"
++  toolchain_cpu = "x64"
++}
++
++termux_toolchain("x86"){
++  toolchain_os = "linux"
++  toolchain_cpu = "x86"
 +}
 diff --git a/engine/src/flutter/shell/testing/BUILD.gn b/engine/src/flutter/shell/testing/BUILD.gn
 index 28a19c7..5c3992b 100644
